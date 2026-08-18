@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "lib": ["ES2022", "DOM"],
+        "strict": true,
+        "noEmit": false,
+        "rootDir": "../..",
+        "outDir": "../../dist/worker",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "isolatedModules": true,
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+        "noImplicitOverride": true,
+        "types": ["node"]
+    },
+    "include": ["./**/*.ts", "../../packages/queue/src/**/*.ts"]
+}

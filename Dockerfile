@@ -19,7 +19,7 @@ RUN composer install \
 ###########################################
 # Stage 2: Build frontend assets
 ###########################################
-FROM node:22-alpine AS frontend
+FROM node:22-bookworm-slim AS frontend
 
 WORKDIR /app
 
@@ -29,6 +29,7 @@ RUN npm ci --ignore-scripts
 
 # Copy source files needed for build
 COPY vite.config.js ./
+COPY apps ./apps
 COPY resources ./resources
 COPY public ./public
 COPY packages ./packages
@@ -36,7 +37,7 @@ COPY packages ./packages
 # Copy vendor for Filament theme CSS
 COPY --from=composer /app/vendor ./vendor
 
-RUN npm run build
+RUN npm run legacy:build && npm run build
 
 ###########################################
 # Stage 3: Production image
@@ -72,6 +73,10 @@ COPY --chown=www-data:www-data --from=composer /app/vendor ./vendor
 
 # Copy built frontend assets
 COPY --chown=www-data:www-data --from=frontend /app/public/build ./public/build
+COPY --chown=www-data:www-data --from=frontend /app/apps/web/.next ./apps/web/.next
+COPY --chown=www-data:www-data --from=frontend /app/dist ./dist
+COPY --chown=www-data:www-data --from=frontend /app/node_modules ./node_modules
+COPY --from=frontend /usr/local/bin/node /usr/local/bin/node
 
 # Generate optimized autoloader
 RUN composer dump-autoload --optimize --no-dev

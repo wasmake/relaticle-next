@@ -4,6 +4,10 @@
 /.cache
 .scribe
 /node_modules
+/dist
+/.next
+/apps/web/.next
+*.tsbuildinfo
 /public/build
 /public/hot
 /public/storage

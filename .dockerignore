@@ -18,6 +18,8 @@
 /public/build
 /public/hot
 /public/storage
+/apps/web/.next
+/dist
 
 # Local environment files
 .env

@@ -35,6 +35,7 @@ services:
       MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-tls}
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@example.com}
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Relaticle}
+      RESEND_KEY: ${RESEND_KEY:-}
       # serversideup/php Laravel automations
       AUTORUN_ENABLED: "true"
       AUTORUN_LARAVEL_MIGRATION: "true"
@@ -77,6 +78,15 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
       REDIS_PORT: 6379
       QUEUE_CONNECTION: redis
+      MAIL_MAILER: ${MAIL_MAILER:-log}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-tls}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@example.com}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Relaticle}
+      RESEND_KEY: ${RESEND_KEY:-}
       # Disable automations for worker container
       AUTORUN_ENABLED: "false"
     volumes:
@@ -89,6 +99,34 @@ services:
     healthcheck:
       test: ["CMD", "healthcheck-horizon"]
       start_period: 10s
+
+  worker:
+    image: ghcr.io/relaticle/relaticle:latest
+    restart: unless-stopped
+    command: ["node", "/var/www/html/dist/worker/apps/worker/index.js"]
+    stop_signal: SIGTERM
+    environment:
+      APP_URL: ${APP_URL:-http://localhost}
+      APP_PANEL_DOMAIN: ${APP_PANEL_DOMAIN:-}
+      APP_PANEL_PATH: ${APP_PANEL_PATH:-app}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-relaticle}
+      DB_USERNAME: ${DB_USERNAME:-relaticle}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
+      REDIS_PORT: 6379
+      BULLMQ_PREFIX: ${BULLMQ_PREFIX:-bull}
+      MAIL_MAILER: ${MAIL_MAILER:-log}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@example.com}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Relaticle}
+      RESEND_KEY: ${RESEND_KEY:-}
+    depends_on:
+      app:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   scheduler:
     image: ghcr.io/relaticle/relaticle:latest
