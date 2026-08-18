@@ -1,112 +1,62 @@
 services:
-  app:
-    image: ghcr.io/relaticle/relaticle:latest
+  web:
+    build:
+      context: .
+      target: production
+    image: ghcr.io/wasmake/relaticle-next:latest
     restart: unless-stopped
+    init: true
     ports:
-      - "${APP_PORT:-80}:8080"
+      - "${APP_PORT:-3000}:3000"
     environment:
-      APP_NAME: ${APP_NAME:-Relaticle}
-      APP_ENV: ${APP_ENV:-production}
-      APP_KEY: ${APP_KEY:?APP_KEY is required}
-      APP_DEBUG: ${APP_DEBUG:-false}
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      APP_NAME: ${APP_NAME:-Relaticle Next}
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      APP_KEY: ${APP_KEY:-}
+      APP_PREVIOUS_KEYS: ${APP_PREVIOUS_KEYS:-}
       APP_TIMEZONE: ${APP_TIMEZONE:-UTC}
-      APP_URL: ${APP_URL:-http://localhost}
       APP_PANEL_DOMAIN: ${APP_PANEL_DOMAIN:-}
-      REQUIRE_EMAIL_VERIFICATION: ${REQUIRE_EMAIL_VERIFICATION:-true}
-      LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
-      LOG_LEVEL: ${LOG_LEVEL:-warning}
-      DB_CONNECTION: pgsql
+      APP_PANEL_PATH: ${APP_PANEL_PATH:-app}
+      SESSION_COOKIE: ${SESSION_COOKIE:-}
+      SESSION_LIFETIME: ${SESSION_LIFETIME:-120}
       DB_HOST: postgres
       DB_PORT: 5432
       DB_DATABASE: ${DB_DATABASE:-relaticle}
       DB_USERNAME: ${DB_USERNAME:-relaticle}
       DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      DB_POOL_MAX: ${DB_POOL_MAX:-10}
       REDIS_HOST: redis
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
       REDIS_PORT: 6379
-      CACHE_STORE: redis
-      SESSION_DRIVER: redis
-      QUEUE_CONNECTION: redis
-      MAIL_MAILER: ${MAIL_MAILER:-log}
-      MAIL_HOST: ${MAIL_HOST:-}
-      MAIL_PORT: ${MAIL_PORT:-587}
-      MAIL_USERNAME: ${MAIL_USERNAME:-}
-      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
-      MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-tls}
-      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@example.com}
-      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Relaticle}
-      RESEND_KEY: ${RESEND_KEY:-}
-      # serversideup/php Laravel automations
-      AUTORUN_ENABLED: "true"
-      AUTORUN_LARAVEL_MIGRATION: "true"
-      AUTORUN_LARAVEL_MIGRATION_ISOLATION: "true"
-    volumes:
-      - storage:/var/www/html/storage/app
+      REDIS_DB: 0
+      REDIS_CACHE_DB: 1
+      BULLMQ_PREFIX: ${BULLMQ_PREFIX:-bull}
+      HEALTH_CHECK_TIMEOUT_MS: ${HEALTH_CHECK_TIMEOUT_MS:-2000}
+      ACTIVITYLOG_ENABLED: ${ACTIVITYLOG_ENABLED:-true}
+      REQUIRE_EMAIL_VERIFICATION: ${REQUIRE_EMAIL_VERIFICATION:-true}
+      RELATICLE_FEATURE_BILLING: ${RELATICLE_FEATURE_BILLING:-false}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/up"]
-      interval: 30s
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
       timeout: 5s
-      retries: 3
-      start_period: 60s
-
-  horizon:
-    image: ghcr.io/relaticle/relaticle:latest
-    restart: unless-stopped
-    command: ["php", "/var/www/html/artisan", "horizon"]
-    stop_signal: SIGTERM
-    environment:
-      APP_NAME: ${APP_NAME:-Relaticle}
-      APP_ENV: ${APP_ENV:-production}
-      APP_KEY: ${APP_KEY:?APP_KEY is required}
-      APP_DEBUG: ${APP_DEBUG:-false}
-      APP_URL: ${APP_URL:-http://localhost}
-      APP_PANEL_DOMAIN: ${APP_PANEL_DOMAIN:-}
-      REQUIRE_EMAIL_VERIFICATION: ${REQUIRE_EMAIL_VERIFICATION:-true}
-      LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_DATABASE: ${DB_DATABASE:-relaticle}
-      DB_USERNAME: ${DB_USERNAME:-relaticle}
-      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
-      REDIS_HOST: redis
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
-      REDIS_PORT: 6379
-      QUEUE_CONNECTION: redis
-      MAIL_MAILER: ${MAIL_MAILER:-log}
-      MAIL_HOST: ${MAIL_HOST:-}
-      MAIL_PORT: ${MAIL_PORT:-587}
-      MAIL_USERNAME: ${MAIL_USERNAME:-}
-      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
-      MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-tls}
-      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@example.com}
-      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Relaticle}
-      RESEND_KEY: ${RESEND_KEY:-}
-      # Disable automations for worker container
-      AUTORUN_ENABLED: "false"
-    volumes:
-      - storage:/var/www/html/storage/app
-    depends_on:
-      app:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "healthcheck-horizon"]
-      start_period: 10s
+      retries: 5
+      start_period: 30s
+    stop_grace_period: 30s
 
   worker:
-    image: ghcr.io/relaticle/relaticle:latest
+    image: ghcr.io/wasmake/relaticle-next:latest
     restart: unless-stopped
-    command: ["node", "/var/www/html/dist/worker/apps/worker/index.js"]
-    stop_signal: SIGTERM
+    init: true
+    command: ["node", "dist/worker/apps/worker/index.js"]
     environment:
-      APP_URL: ${APP_URL:-http://localhost}
+      NODE_ENV: production
+      APP_URL: ${APP_URL:-http://localhost:3000}
       APP_PANEL_DOMAIN: ${APP_PANEL_DOMAIN:-}
       APP_PANEL_PATH: ${APP_PANEL_PATH:-app}
       DB_HOST: postgres
@@ -114,54 +64,22 @@ services:
       DB_DATABASE: ${DB_DATABASE:-relaticle}
       DB_USERNAME: ${DB_USERNAME:-relaticle}
       DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      DB_POOL_MAX: ${DB_POOL_MAX:-10}
       REDIS_HOST: redis
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
       REDIS_PORT: 6379
+      REDIS_DB: 0
       BULLMQ_PREFIX: ${BULLMQ_PREFIX:-bull}
       MAIL_MAILER: ${MAIL_MAILER:-log}
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@example.com}
-      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Relaticle}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Relaticle Next}
       RESEND_KEY: ${RESEND_KEY:-}
     depends_on:
-      app:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-
-  scheduler:
-    image: ghcr.io/relaticle/relaticle:latest
-    restart: unless-stopped
-    command: ["php", "/var/www/html/artisan", "schedule:work"]
     stop_signal: SIGTERM
-    environment:
-      APP_NAME: ${APP_NAME:-Relaticle}
-      APP_ENV: ${APP_ENV:-production}
-      APP_KEY: ${APP_KEY:?APP_KEY is required}
-      APP_DEBUG: ${APP_DEBUG:-false}
-      APP_URL: ${APP_URL:-http://localhost}
-      APP_PANEL_DOMAIN: ${APP_PANEL_DOMAIN:-}
-      REQUIRE_EMAIL_VERIFICATION: ${REQUIRE_EMAIL_VERIFICATION:-true}
-      LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_DATABASE: ${DB_DATABASE:-relaticle}
-      DB_USERNAME: ${DB_USERNAME:-relaticle}
-      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
-      REDIS_HOST: redis
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
-      REDIS_PORT: 6379
-      QUEUE_CONNECTION: redis
-      # Disable automations for scheduler container
-      AUTORUN_ENABLED: "false"
-    volumes:
-      - storage:/var/www/html/storage/app
-    depends_on:
-      app:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "healthcheck-schedule"]
-      start_period: 10s
+    stop_grace_period: 60s
 
   postgres:
     image: postgres:17-alpine
@@ -173,24 +91,27 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-relaticle} -d ${DB_DATABASE:-relaticle}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 10s
+    stop_grace_period: 60s
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command: redis-server --appendonly yes
+    command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 5s
+    stop_grace_period: 30s
 
 volumes:
   postgres:
   redis:
-  storage:

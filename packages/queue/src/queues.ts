@@ -115,8 +115,8 @@ const contracts = [
         concurrency: {
             minimum: 1,
             maximum: 3,
-            minimumEnvironmentVariable: "HORIZON_CHAT_MIN",
-            maximumEnvironmentVariable: "HORIZON_CHAT_MAX",
+            minimumEnvironmentVariable: "CHAT_WORKER_MIN",
+            maximumEnvironmentVariable: "CHAT_WORKER_MAX",
         },
     },
 ] as const satisfies readonly QueueContract[];

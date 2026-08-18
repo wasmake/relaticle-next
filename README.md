@@ -1,100 +1,169 @@
-<p align="center">
-  <a href="https://relaticle.com">
-    <img src="https://relaticle.com/brand/logomark.svg" width="100px" alt="Relaticle logo" />
-  </a>
-</p>
+# Relaticle Next
 
-<h1 align="center">The Open-Source CRM Built for People and AI-Powered Work</h1>
+Relaticle Next is a standalone Node.js migration of the Relaticle CRM backend. It uses Next.js App Router route handlers for the HTTP API, PostgreSQL through Drizzle ORM, Redis for rate limiting and queues, and BullMQ workers for asynchronous notifications.
 
-<p align="center">
-  <a href="https://github.com/Relaticle/relaticle/actions"><img src="https://img.shields.io/github/actions/workflow/status/Relaticle/relaticle/deploy.yml?style=for-the-badge&label=tests" alt="Tests"></a>
-  <a href="https://relaticle.com/docs/mcp"><img src="https://img.shields.io/badge/MCP_Tools-32-8A2BE2?style=for-the-badge" alt="32 MCP Tools"></a>
-  <a href="https://laravel.com/docs/13.x"><img src="https://img.shields.io/badge/Laravel-13.x-FF2D20?style=for-the-badge&logo=laravel" alt="Laravel 13"></a>
-  <a href="https://php.net"><img src="https://img.shields.io/badge/PHP-8.5-777BB4?style=for-the-badge&logo=php" alt="PHP 8.5"></a>
-  <a href="https://github.com/Relaticle/relaticle/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge" alt="License"></a>
-</p>
+This repository contains no PHP runtime or Composer dependencies.
 
-<p align="center">
-  <a href="https://relaticle.com">Website</a> ·
-  <a href="https://relaticle.com/docs">Documentation</a> ·
-  <a href="https://relaticle.com/docs/mcp">MCP Server</a> ·
-  <a href="https://github.com/orgs/Relaticle/projects/1/views/1">Roadmap</a> ·
-  <a href="https://github.com/Relaticle/relaticle/discussions">Discussions</a>
-</p>
+## Current Status
 
-<p align="center">
-  <img src="https://relaticle.com/images/github-preview-light.png?v=4" alt="Relaticle Home - AI assistant, chat history, and your open tasks in one view" />
-  <br>
-  <sub>Clean, modern interface built with Filament 5 and Livewire 4</sub>
-</p>
+The implemented surface is an API backend, not a complete CRM product replacement.
 
----
+- Available: health checks, authentication compatibility, workspace isolation, hosted-access enforcement, CRM CRUD APIs, custom-field persistence, activity logging, API throttling, and task-assignment notifications.
+- Not available: browser CRM pages, login or registration pages, chat, imports, MCP, OAuth flows, billing UI, documentation, blog, system administration, and a scheduler runtime.
+- Database requirement: the application currently targets an existing Relaticle PostgreSQL schema. A fresh-database migration system is not included yet.
+- Credential compatibility: existing encrypted session cookies, personal access tokens, bcrypt hashes, and encrypted custom fields remain readable when the matching `APP_KEY` is supplied.
 
-# About Relaticle
+## Stack
 
-Relaticle is a self-hosted CRM with a production-grade MCP server. Connect any AI agent -- Claude, GPT, or open-source models -- with 32 tools for full CRM operations. 22 custom field types, REST API, and multi-team isolation.
+- Node.js 22
+- Next.js 16 and React 19
+- TypeScript 6
+- PostgreSQL 17
+- Drizzle ORM
+- Redis and BullMQ
+- Resend for production email delivery
+- Vitest
 
-**Perfect for:** Developer-led teams, AI-forward startups, and SMBs who want AI agent integration without vendor lock-in.
+## API
 
-**Core Strengths:**
+Public endpoints:
 
-- **Agent-Native Infrastructure** - MCP server with 32 tools, REST API with full CRUD, schema discovery for AI agents
-- **Customizable Data Model** - 22 field types including entity relationships, conditional visibility, and per-field encryption. No migrations needed.
-- **Multi-Team Isolation** - 5-layer authorization with team-scoped data and workspaces
-- **Modern Tech Stack** - Laravel 13, Filament 5, PHP 8.5, 2,000+ automated tests
-- **Privacy-First** - Self-hosted, AGPL-3.0, your data stays on your server
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/up` | Process liveness |
+| `GET` | `/health/ready` | PostgreSQL and Redis readiness |
 
-# Requirements
+Authenticated endpoints:
 
-- PHP 8.5+
-- PostgreSQL 17+
-- Composer 2 and Node.js 20+
-- Redis for queues (optional for development)
+| Methods | Path |
+| --- | --- |
+| `GET` | `/api/v1/user` |
+| `GET`, `POST` | `/api/v1/companies` |
+| `GET`, `PUT`, `PATCH`, `DELETE` | `/api/v1/companies/{companyId}` |
+| `GET`, `POST` | `/api/v1/people` |
+| `GET`, `PUT`, `PATCH`, `DELETE` | `/api/v1/people/{personId}` |
+| `GET`, `POST` | `/api/v1/opportunities` |
+| `GET`, `PUT`, `PATCH`, `DELETE` | `/api/v1/opportunities/{opportunityId}` |
+| `GET`, `POST` | `/api/v1/tasks` |
+| `GET`, `PUT`, `PATCH`, `DELETE` | `/api/v1/tasks/{taskId}` |
+| `GET`, `POST` | `/api/v1/notes` |
+| `GET`, `PUT`, `PATCH`, `DELETE` | `/api/v1/notes/{noteId}` |
 
-# Installation
+Authentication supports existing personal access tokens and database-backed encrypted sessions. A token-bound workspace takes precedence over `X-Team-Id`, which takes precedence over the user's current workspace.
+
+## Requirements
+
+- Node.js `>=22.12.0`
+- npm
+- PostgreSQL with the existing Relaticle schema
+- Redis
+
+## Local Setup
 
 ```bash
-git clone https://github.com/Relaticle/relaticle.git
-cd relaticle && composer app-install
+git clone https://github.com/wasmake/relaticle-next.git
+cd relaticle-next
+npm ci
+cp .env.example .env
 ```
 
-# Development
+Configure PostgreSQL and Redis in `.env`, then start the API:
 
 ```bash
-# Start everything (server, queue, vite)
-composer dev
-
-# Run tests
-composer test
-
-# Format code
-composer lint
+npm run dev
 ```
 
-# Self-Hosting
+The development server listens on `http://localhost:3000` by default.
 
-See the [Self-Hosting Guide](https://relaticle.com/docs/self-hosting) for Docker and manual deployment instructions.
+Build and run the worker separately when testing task notifications:
 
-# Internationalization
+```bash
+npm run build:worker
+npm run start:worker
+```
 
-Relaticle ships English-only in the main repository, but the codebase is fully i18n-ready. Self-host forks can drop a `lang/<locale>/` directory in place to translate the entire app. See [`docs/i18n.md`](docs/i18n.md) for the override workflow and CI guardrails.
+## Environment
 
-# Documentation
+The complete template is in `.env.example`. The principal variables are:
 
-Visit our [documentation](https://relaticle.com/docs) for guides on business usage, technical architecture, MCP server setup, REST API integration, and more.
+| Variable | Purpose |
+| --- | --- |
+| `APP_URL` | Public application URL |
+| `APP_KEY` | Existing encrypted-cookie and custom-field compatibility |
+| `APP_PREVIOUS_KEYS` | Previous encryption keys used during rotation |
+| `DATABASE_URL` or `DB_*` | PostgreSQL connection |
+| `REDIS_URL` or `REDIS_*` | Redis connection |
+| `REDIS_CACHE_DB` | API rate-limit database, default `1` |
+| `BULLMQ_PREFIX` | BullMQ key prefix |
+| `REQUIRE_EMAIL_VERIFICATION` | Require verified users for API access |
+| `RELATICLE_FEATURE_BILLING` | Enable hosted-workspace subscription enforcement |
+| `MAIL_MAILER` | Worker mail transport: `log` or `resend` |
+| `RESEND_KEY` | Required when `MAIL_MAILER=resend` |
 
-# Community & Support
+## Commands
 
-- [Report Issues](https://github.com/Relaticle/relaticle/issues)
-- [Request Features](https://github.com/Relaticle/relaticle/discussions/categories/ideas)
-- [Ask Questions](https://github.com/Relaticle/relaticle/discussions/categories/q-a)
-- [Discord](https://discord.gg/relaticle)
-- [Star us on GitHub](https://github.com/Relaticle/relaticle) to support the project
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the Next.js development server |
+| `npm run build` | Build the Next.js server and BullMQ worker |
+| `npm run start` | Start the production Next.js server locally |
+| `npm run start:worker` | Start the compiled BullMQ worker |
+| `npm run lint` | Run ESLint |
+| `npm run typecheck` | Type-check web, worker, and scheduler contracts |
+| `npm test` | Run the Vitest suite |
+| `npm run test:watch` | Run Vitest in watch mode |
+| `npm run check` | Run lint, type checks, tests, and production builds |
 
-# License
+## Docker
 
-Relaticle is open-source software licensed under the [AGPL-3.0 license](LICENSE).
+The Node-only image contains both the standalone Next.js server and compiled worker. Compose runs the same image with separate commands:
 
-# Star History
+```bash
+DB_PASSWORD=change-me docker compose up --build
+```
 
-[![Star History Chart](https://api.star-history.com/chart?repos=relaticle/relaticle&type=date&legend=top-left&sealed_token=c38GyCHd6M75Bak3QvcMoEfYHGDlV1lAIyuGyJoQ8AA1kyVwXhZR7A1qYLuGDZg9H0LsvERRX3YUEkOWkjt4q0N0y-mlHVm2NI3mDb74NKAka4KPxMrBBA)](https://www.star-history.com/?repos=relaticle%2Frelaticle&type=date&legend=top-left)
+Services:
+
+- `web`: Next.js on port `3000`
+- `worker`: BullMQ default-queue worker
+- `postgres`: PostgreSQL 17
+- `redis`: Redis 7
+
+Compose does not initialize the application schema. Restore or connect an existing compatible database before using the CRM endpoints.
+
+## Architecture
+
+```text
+apps/
+  web/          Next.js routes, API services, database mappings
+  worker/       BullMQ task-notification worker
+  scheduler/    Schedule contracts only; no runtime yet
+packages/
+  queue/        Shared queue names, job schemas, and schedule contracts
+tests/
+  next/         Vitest API and compatibility tests
+```
+
+Each CRM route follows the same path: App Router handler, access resolver, validation, service, repository, Drizzle query, and JSON:API-style response formatter.
+
+## Verification
+
+```bash
+npm ci
+npm run check
+npm audit --audit-level=moderate
+```
+
+## Known Limitations
+
+- No browser UI or browser authentication flow is implemented.
+- No Node database migrations are included.
+- The worker currently processes task-assignment jobs on the `default` queue only.
+- The declared `imports` and `chat` queues do not have Node processors.
+- Scheduler contracts exist, but scheduled job handlers and a scheduler process do not.
+- File-upload custom fields are rejected until a Node media lifecycle is implemented.
+- Live PostgreSQL, Redis, BullMQ, and Resend integration requires a production-shaped environment.
+
+## License
+
+Relaticle Next is licensed under the [GNU Affero General Public License v3.0](LICENSE).

@@ -75,7 +75,7 @@ class RecordingEmailQueue implements TaskNotificationEmailQueue {
 }
 
 describe("task assignee BullMQ processor", () => {
-    it("creates the default-on Filament database notification and leaves email off", async () => {
+    it("creates the default-on database notification and leaves email off", async () => {
         const repository = new InMemoryNotificationRepository();
         const emailQueue = new RecordingEmailQueue();
         const processor = new TaskAssigneesAddedProcessor(
@@ -94,21 +94,19 @@ describe("task assignee BullMQ processor", () => {
         expect(repository.inserted).toEqual([
             {
                 id: notificationId,
-                type: "Filament\\Notifications\\DatabaseNotification",
+                type: "task_assigned",
                 notifiableType: "user",
                 notifiableId: recipientId,
                 data: expect.objectContaining({
                     title: "New Task Assignment: Follow up",
-                    icon: "heroicon-o-check-circle",
-                    iconColor: "primary",
-                    duration: "persistent",
-                    format: "filament",
+                    icon: "check-circle",
+                    format: "relaticle-next",
                     viewData: { task_id: taskId },
                     actions: [
                         expect.objectContaining({
                             name: "view",
                             label: "View Task",
-                            shouldMarkAsRead: true,
+                            markAsRead: true,
                             url: `https://crm.example.test/app/analytical-engines/tasks?tableAction=edit&tableActionRecord=${taskId}`,
                         }),
                     ],

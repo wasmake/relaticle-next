@@ -125,7 +125,7 @@ export const assertSupportedDefinition = (
         throw new UnsupportedCustomFieldSemanticsError(
             definition.code,
             definition.type,
-            "the Laravel encrypted cast is only safe for scalar text and select values",
+            "encrypted storage is only safe for scalar text and select values",
         );
     }
 
@@ -133,7 +133,7 @@ export const assertSupportedDefinition = (
         throw new UnsupportedCustomFieldSemanticsError(
             definition.code,
             definition.type,
-            "file-upload is disabled in config/custom-fields.php and no Next media upload contract exists",
+            "no Node media upload contract exists",
         );
     }
 
@@ -400,7 +400,7 @@ const resolveDateBoundary = (
     ) {
         boundary = parseDateOnly(constraint.fixed_date);
     } else {
-        // Laravel's API ValidationService also omits runtime-context constraints.
+        // Runtime-context constraints are intentionally outside API validation.
         return undefined;
     }
 
@@ -662,7 +662,7 @@ export const validateCustomFieldValue = (
             throw new UnsupportedCustomFieldSemanticsError(
                 definition.code,
                 definition.type,
-                "the field type is not registered in the Laravel CustomFieldType enum",
+                "the field type is not registered in the supported custom-field types",
             );
     }
 };

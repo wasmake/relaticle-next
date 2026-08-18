@@ -45,8 +45,6 @@
   ],
   "exclude": [
     "node_modules",
-    "public",
-        "../../resources/js",
-        "../../vite.config.js"
+    "public"
   ]
 }

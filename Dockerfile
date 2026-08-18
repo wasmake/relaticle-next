@@ -1,106 +1,43 @@
 # syntax=docker/dockerfile:1
 
-###########################################
-# Stage 1: Composer dependencies
-###########################################
-FROM composer:2 AS composer
+FROM node:22-bookworm-slim AS dependencies
 
 WORKDIR /app
 
-COPY composer.json composer.lock ./
-RUN composer install \
-    --no-dev \
-    --no-interaction \
-    --no-scripts \
-    --no-autoloader \
-    --prefer-dist \
-    --ignore-platform-reqs
-
-###########################################
-# Stage 2: Build frontend assets
-###########################################
-FROM node:22-bookworm-slim AS frontend
-
-WORKDIR /app
-
-# Copy package files and install
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts
+RUN npm ci
 
-# Copy source files needed for build
-COPY vite.config.js ./
+FROM dependencies AS build
+
 COPY apps ./apps
-COPY resources ./resources
-COPY public ./public
 COPY packages ./packages
 
-# Copy vendor for Filament theme CSS
-COPY --from=composer /app/vendor ./vendor
+RUN npm run build
 
-RUN npm run legacy:build && npm run build
+FROM node:22-bookworm-slim AS production-dependencies
 
-###########################################
-# Stage 3: Production image
-###########################################
-FROM serversideup/php:8.5-fpm-nginx AS production
+WORKDIR /app
 
-LABEL org.opencontainers.image.title="Relaticle CRM"
-LABEL org.opencontainers.image.description="Modern, open-source CRM platform"
-LABEL org.opencontainers.image.source="https://github.com/Relaticle/relaticle"
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev && npm cache clean --force
 
-# Switch to root to install dependencies
-USER root
+FROM node:22-bookworm-slim AS production
 
-# Install required PHP extensions
-RUN install-php-extensions intl exif gd imagick bcmath
+ENV NODE_ENV=production
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
 
-# Install PostgreSQL client for health checks
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends postgresql-client \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
 
-# Switch back to www-data
-USER www-data
+COPY --from=build --chown=node:node /app/apps/web/.next/standalone ./
+COPY --from=build --chown=node:node /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=build --chown=node:node /app/apps/web/public ./apps/web/public
+COPY --from=build --chown=node:node /app/dist/worker ./dist/worker
+COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules
+COPY --chown=node:node package.json ./
 
-WORKDIR /var/www/html
+USER node
 
-# Copy application source
-COPY --chown=www-data:www-data . .
+EXPOSE 3000
 
-# Copy vendor from composer stage
-COPY --chown=www-data:www-data --from=composer /app/vendor ./vendor
-
-# Copy built frontend assets
-COPY --chown=www-data:www-data --from=frontend /app/public/build ./public/build
-COPY --chown=www-data:www-data --from=frontend /app/apps/web/.next ./apps/web/.next
-COPY --chown=www-data:www-data --from=frontend /app/dist ./dist
-COPY --chown=www-data:www-data --from=frontend /app/node_modules ./node_modules
-COPY --from=frontend /usr/local/bin/node /usr/local/bin/node
-
-# Generate optimized autoloader
-RUN composer dump-autoload --optimize --no-dev
-
-# Create storage directories
-RUN mkdir -p \
-    storage/app/public \
-    storage/framework/cache/data \
-    storage/framework/sessions \
-    storage/framework/views \
-    storage/logs \
-    bootstrap/cache
-
-# Default environment for serversideup/php Laravel automations
-ENV AUTORUN_ENABLED=true
-ENV AUTORUN_LARAVEL_STORAGE_LINK=true
-ENV AUTORUN_LARAVEL_MIGRATION=true
-ENV AUTORUN_LARAVEL_MIGRATION_ISOLATION=true
-ENV AUTORUN_LARAVEL_CONFIG_CACHE=true
-ENV AUTORUN_LARAVEL_ROUTE_CACHE=true
-ENV AUTORUN_LARAVEL_VIEW_CACHE=true
-ENV AUTORUN_LARAVEL_EVENT_CACHE=true
-ENV AUTORUN_LARAVEL_OPTIMIZE=false
-ENV PHP_OPCACHE_ENABLE=1
-ENV SSL_MODE=off
-
-EXPOSE 8080
+CMD ["node", "apps/web/server.js"]

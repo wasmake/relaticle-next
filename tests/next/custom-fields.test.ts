@@ -843,7 +843,7 @@ describe("custom-field API formatting and explicit gaps", () => {
         {
             type: "file-upload",
             overrides: {},
-            reason: "no Next media upload contract",
+            reason: "no Node media upload contract",
         },
         {
             type: "phone",

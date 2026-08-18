@@ -11,7 +11,7 @@ import {
 } from "../../packages/queue/src/index";
 
 describe("queue worker contracts", () => {
-    it("preserves the production Horizon queue policies", () => {
+    it("preserves the production queue policies", () => {
         expect(getWorkerProcessContracts({})).toEqual([
             {
                 name: "default",
@@ -39,20 +39,20 @@ describe("queue worker contracts", () => {
 
     it("resolves and validates the existing chat scaling overrides", () => {
         const contracts = getWorkerProcessContracts({
-            HORIZON_CHAT_MIN: "2",
-            HORIZON_CHAT_MAX: "6",
+            CHAT_WORKER_MIN: "2",
+            CHAT_WORKER_MAX: "6",
         });
 
         expect(
             contracts.find(({ name }) => name === "chat")?.concurrency,
         ).toEqual({ minimum: 2, maximum: 6 });
         expect(() =>
-            getWorkerProcessContracts({ HORIZON_CHAT_MIN: "many" }),
-        ).toThrow(/HORIZON_CHAT_MIN/);
+            getWorkerProcessContracts({ CHAT_WORKER_MIN: "many" }),
+        ).toThrow(/CHAT_WORKER_MIN/);
         expect(() =>
             getWorkerProcessContracts({
-                HORIZON_CHAT_MIN: "4",
-                HORIZON_CHAT_MAX: "3",
+                CHAT_WORKER_MIN: "4",
+                CHAT_WORKER_MAX: "3",
             }),
         ).toThrow(/minimum concurrency cannot exceed maximum/);
     });

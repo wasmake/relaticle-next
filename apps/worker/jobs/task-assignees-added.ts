@@ -13,7 +13,7 @@ export type TaskNotificationRecipient = Readonly<{
 
 export type DatabaseNotificationRow = Readonly<{
     id: string;
-    type: "Filament\\Notifications\\DatabaseNotification";
+    type: "task_assigned";
     notifiableType: "user";
     notifiableId: string;
     data: Readonly<Record<string, unknown>>;
@@ -104,40 +104,16 @@ const notificationData = (
     actions: [
         {
             name: "view",
-            alpineClickHandler: null,
-            color: null,
-            event: null,
-            eventData: [],
-            dispatchDirection: false,
-            dispatchToComponent: null,
-            extraAttributes: [],
-            icon: null,
-            iconPosition: "before",
-            iconSize: null,
-            isOutlined: false,
-            isDisabled: false,
             label: "View Task",
-            shouldClose: false,
-            shouldMarkAsRead: true,
-            shouldMarkAsUnread: false,
-            shouldOpenUrlInNewTab: false,
-            shouldPostToUrl: false,
-            size: "sm",
-            tooltip: null,
+            markAsRead: true,
             url: taskUrl,
-            view: "filament::components.button.index",
         },
     ],
-    body: null,
-    color: null,
-    duration: "persistent",
-    icon: "heroicon-o-check-circle",
-    iconColor: "primary",
-    status: null,
+    type: "task_assigned",
+    icon: "check-circle",
     title: `New Task Assignment: ${taskTitle}`,
-    view: null,
     viewData: { task_id: taskId },
-    format: "filament",
+    format: "relaticle-next",
 });
 
 export class TaskAssigneesAddedProcessor {
@@ -175,7 +151,7 @@ export class TaskAssigneesAddedProcessor {
             if (wantsInApp(recipient.notificationPreferences)) {
                 databaseRows.push({
                     id: requested.databaseNotificationId,
-                    type: "Filament\\Notifications\\DatabaseNotification",
+                    type: "task_assigned",
                     notifiableType: "user",
                     notifiableId: recipient.id,
                     data: notificationData(job.taskTitle, job.taskId, taskUrl),
