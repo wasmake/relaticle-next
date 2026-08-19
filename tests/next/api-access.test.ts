@@ -83,6 +83,7 @@ class InMemoryHttpAuthRepository implements HttpAuthRepository {
             name: "Current Workspace",
             slug: "current-workspace",
             personalTeam: false,
+            scheduledDeletionAt: null,
         },
         {
             id: selectedTeamId,
@@ -90,6 +91,7 @@ class InMemoryHttpAuthRepository implements HttpAuthRepository {
             name: "Selected Workspace",
             slug: "selected-workspace",
             personalTeam: false,
+            scheduledDeletionAt: null,
         },
     ];
 

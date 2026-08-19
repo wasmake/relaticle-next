@@ -25,6 +25,8 @@ export const subscriptions = pgTable(
         quantity: integer("quantity"),
         trialEndsAt: timestamp("trial_ends_at", { mode: "date" }),
         endsAt: timestamp("ends_at", { mode: "date" }),
+        stripeEventCreatedAt: timestamp("stripe_event_created_at", { mode: "date" }),
+        stripeEventId: varchar("stripe_event_id", { length: 255 }),
         ...laravelTimestamps(),
     },
     (table) => [

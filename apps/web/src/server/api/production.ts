@@ -8,6 +8,8 @@ import { HostedWorkspaceAccess } from "@/server/billing/hosted-workspace-access"
 import { DrizzleCustomFieldRepository } from "@/server/custom-fields/drizzle-repository";
 import { LaravelCustomFieldEncryption } from "@/server/custom-fields/encryption";
 import { CustomFieldsService } from "@/server/custom-fields/service";
+import { DrizzleMediaCustomFieldReferences } from "@/server/media/custom-field-references";
+import { queueMailcoachEvent } from "@/server/accounts/mailcoach";
 import { getEnvironment } from "@/server/env";
 
 import { ProductionApiAccessResolver } from "./access";
@@ -37,10 +39,13 @@ export const productionApiAccessResolver = new ProductionApiAccessResolver(
 export const productionActivityWriter = new ActivityWriter(
     environment.ACTIVITYLOG_ENABLED,
     customFieldEncryption,
+    undefined,
+    (userId) => queueMailcoachEvent(userId, "first-data"),
 );
 
 export const productionCustomFieldsService = new CustomFieldsService(
     new DrizzleCustomFieldRepository(),
     () => new Date(),
     customFieldEncryption,
+    new DrizzleMediaCustomFieldReferences(),
 );

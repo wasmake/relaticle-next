@@ -42,6 +42,7 @@ const failureStatuses: Readonly<
     user_scheduled_for_deletion: 403,
     ability_denied: 403,
     team_not_found: 403,
+    team_scheduled_for_deletion: 403,
     team_membership_required: 403,
 };
 
@@ -440,6 +441,10 @@ export const authorizeHttpIdentity = async (
         !ownerUserId.success
     ) {
         return reject("team_not_found");
+    }
+
+    if (team.scheduledDeletionAt !== null) {
+        return reject("team_scheduled_for_deletion");
     }
 
     const belongsToTeam =

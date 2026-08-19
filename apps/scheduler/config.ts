@@ -3,7 +3,7 @@ import {
     scheduleContracts,
     type EnvironmentSource,
     type ScheduledJobContract,
-} from "../../packages/queue/src/index";
+} from "../../packages/queue/src/index.js";
 
 export interface SchedulerProcessContract {
     readonly timeZone: string;

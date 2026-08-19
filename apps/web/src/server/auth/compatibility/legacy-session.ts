@@ -10,6 +10,7 @@ export type LegacySessionRecord = Readonly<{
     id: string;
     userId: string | null;
     lastActivity: number;
+    payload?: string;
 }>;
 
 export type ResolvedLegacySession = Readonly<{
@@ -54,16 +55,26 @@ export const resolveLegacySession = async (
     }
 
     const session = await findSession(sessionId);
+    const nowSeconds = Math.floor((input.now ?? new Date()).getTime() / 1_000);
     const expiryCutoff = Math.floor(
-        (input.now ?? new Date()).getTime() / 1_000 -
+        nowSeconds -
             input.lifetimeMinutes * 60,
     );
+    let rememberUntil: number | undefined;
+    if (session?.payload?.startsWith("relaticle:") === true) {
+        try {
+            const value = JSON.parse(session.payload.slice("relaticle:".length)) as { rememberUntil?: unknown };
+            if (typeof value.rememberUntil === "number") rememberUntil = value.rememberUntil;
+        } catch {
+            rememberUntil = undefined;
+        }
+    }
 
     if (
         session === undefined ||
         session.id !== sessionId ||
         session.userId === null ||
-        session.lastActivity < expiryCutoff
+        (session.lastActivity < expiryCutoff && (rememberUntil === undefined || rememberUntil <= nowSeconds))
     ) {
         return undefined;
     }

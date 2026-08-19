@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
     type AnyPgColumn,
+    bigint,
     bigserial,
     boolean,
     foreignKey,
@@ -30,6 +31,7 @@ export const users = pgTable(
         twoFactorConfirmedAt: timestamp("two_factor_confirmed_at", {
             mode: "date",
         }),
+        twoFactorLastUsedStep: bigint("two_factor_last_used_step", { mode: "number" }),
         rememberToken: varchar("remember_token", { length: 100 }),
         scheduledDeletionAt: timestamp("scheduled_deletion_at", {
             mode: "date",

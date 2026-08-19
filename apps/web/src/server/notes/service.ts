@@ -135,6 +135,7 @@ export class NotesService {
         context: RequestContext,
         body: Readonly<Record<string, unknown>>,
         includes: readonly NoteInclude[],
+        creationSource: "api" | "chat" = "api",
     ): Promise<NoteView> {
         const data = validateCreateNote(body);
         await this.assertRelationshipsOwned(context, data.relationships);
@@ -155,7 +156,7 @@ export class NotesService {
             teamId: context.teamId,
             creatorId: context.userId,
             title: data.title,
-            creationSource: "api",
+            creationSource,
             occurredAt: this.now(),
             relationships: data.relationships,
             customFields,

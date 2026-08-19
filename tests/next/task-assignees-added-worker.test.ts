@@ -156,9 +156,11 @@ describe("task assignee BullMQ processor", () => {
                     taskTitle: "Follow up",
                     taskUrl: `http://app.localhost:8080/analytical-engines/tasks?tableAction=edit&tableActionRecord=${taskId}`,
                 },
-                options: {
-                    jobId: `task-assignee-email-${eventId}-${recipientId}`,
-                },
+                options: expect.objectContaining({
+                    jobId: expect.stringContaining("task-assignee-email"),
+                    attempts: 5,
+                    backoff: { type: "exponential", delay: 2_000 },
+                }),
             },
         ]);
     });

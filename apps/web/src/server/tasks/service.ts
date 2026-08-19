@@ -154,6 +154,7 @@ export class TasksService {
         context: RequestContext,
         body: Readonly<Record<string, unknown>>,
         includes: readonly TaskInclude[],
+        creationSource: "api" | "chat" = "api",
     ): Promise<TaskView> {
         const data = validateCreateTask(body);
         const id = this.createId();
@@ -172,7 +173,7 @@ export class TasksService {
             teamId: context.teamId,
             creatorId: context.userId,
             title: data.title,
-            creationSource: "api",
+            creationSource,
             occurredAt: this.now(),
             customFields,
             ...this.relationshipInput(data),

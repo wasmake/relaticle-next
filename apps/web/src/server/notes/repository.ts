@@ -20,7 +20,7 @@ export type CreateNoteTransaction = Readonly<{
     teamId: Ulid;
     creatorId: Ulid;
     title: string;
-    creationSource: "api";
+    creationSource: "api" | "chat";
     occurredAt: Date;
     relationships: NoteRelationshipSyncs;
     customFields: PreparedCustomFieldWrite;

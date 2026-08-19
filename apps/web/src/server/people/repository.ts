@@ -17,7 +17,7 @@ export type CreatePeopleTransaction = Readonly<{
     creatorId: Ulid;
     companyId: Ulid | null;
     name: string;
-    creationSource: "api";
+    creationSource: "api" | "chat";
     occurredAt: Date;
     customFields: PreparedCustomFieldWrite;
 }>;

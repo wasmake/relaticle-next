@@ -19,10 +19,19 @@ const optionalUrl = z.preprocess(
     emptyStringAsUndefined,
     z.url().optional(),
 );
+const environmentBoolean = (fallback: boolean) => z.preprocess((value: unknown): unknown => {
+    const normalized = emptyStringAsUndefined(value);
+    if (normalized === undefined) return fallback;
+    if (normalized === "true" || normalized === "1") return true;
+    if (normalized === "false" || normalized === "0") return false;
+    return normalized;
+}, z.boolean());
 
 const workerEnvironmentSchema = z
     .object({
         APP_URL: z.url().default("http://localhost"),
+        APP_KEY: optionalString,
+        APP_PREVIOUS_KEYS: optionalString,
         APP_PANEL_DOMAIN: optionalString,
         APP_PANEL_PATH: z.string().min(1).default("app"),
         DATABASE_URL: optionalUrl,
@@ -39,6 +48,22 @@ const workerEnvironmentSchema = z
         REDIS_PASSWORD: optionalString,
         REDIS_DB: z.coerce.number().int().min(0).default(0),
         BULLMQ_PREFIX: z.string().min(1).default("bull"),
+        HEALTH_PORT: z.coerce.number().int().min(1).max(65_535).default(3001),
+        REDIS_PREFIX: z.string().default(""),
+        MAILCOACH_API_ENDPOINT: optionalUrl,
+        MAILCOACH_API_TOKEN: optionalString,
+        ACTIVITYLOG_ENABLED: environmentBoolean(true),
+        ANTHROPIC_API_KEY: optionalString,
+        ANTHROPIC_BASE_URL: z.url().default("https://api.anthropic.com/v1"),
+        ANTHROPIC_MODEL: z.string().min(1).default("claude-sonnet-4-5"),
+        OPENAI_API_KEY: optionalString,
+        OPENAI_BASE_URL: z.url().default("https://api.openai.com/v1"),
+        OPENAI_MODEL: z.string().min(1).default("gpt-4.1"),
+        OLLAMA_URL: z.url().default("http://127.0.0.1:11434"),
+        OLLAMA_MODEL: z.string().min(1).default("llama3.1"),
+        OPENAI_COMPATIBLE_URL: z.url().default("http://127.0.0.1:8080/v1"),
+        OPENAI_COMPATIBLE_KEY: optionalString,
+        OPENAI_COMPATIBLE_MODELS: z.string().default(""),
         MAIL_MAILER: z.enum(["resend", "log"]).default("log"),
         MAIL_FROM_ADDRESS: z.email().default("hello@example.com"),
         MAIL_FROM_NAME: z.string().min(1).default("Relaticle"),

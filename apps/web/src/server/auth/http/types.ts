@@ -28,6 +28,7 @@ export type HttpAuthTeamRecord = Readonly<{
     name: string;
     slug: string;
     personalTeam: boolean;
+    scheduledDeletionAt: Date | null;
 }>;
 
 export interface HttpAuthRepository {
@@ -86,6 +87,7 @@ export type HttpAuthFailureReason =
     | "user_scheduled_for_deletion"
     | "ability_denied"
     | "team_not_found"
+    | "team_scheduled_for_deletion"
     | "team_membership_required";
 
 export type HttpAuthFailure = Readonly<{

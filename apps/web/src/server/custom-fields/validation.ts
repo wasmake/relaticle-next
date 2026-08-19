@@ -129,14 +129,6 @@ export const assertSupportedDefinition = (
         );
     }
 
-    if (definition.type === "file-upload") {
-        throw new UnsupportedCustomFieldSemanticsError(
-            definition.code,
-            definition.type,
-            "no Node media upload contract exists",
-        );
-    }
-
 }
 
 const isClearValue = (definition: CustomFieldDefinition, value: unknown): boolean =>
@@ -653,11 +645,9 @@ export const validateCustomFieldValue = (
         case "record":
             return parseMultiChoice(definition, value, rules);
         case "file-upload":
-            throw new UnsupportedCustomFieldSemanticsError(
-                definition.code,
-                definition.type,
-                "unsupported type reached validation",
-            );
+            return typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(value)
+                ? { value: value.toLowerCase(), tagOptionLabels: [] }
+                : issue(definition, "must reference an uploaded file.");
         default:
             throw new UnsupportedCustomFieldSemanticsError(
                 definition.code,

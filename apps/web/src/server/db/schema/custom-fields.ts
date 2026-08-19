@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
     bigint,
     boolean,
@@ -10,6 +11,7 @@ import {
     text,
     timestamp,
     unique,
+    uniqueIndex,
     varchar,
 } from "drizzle-orm/pg-core";
 
@@ -90,6 +92,9 @@ export const customFields = pgTable(
             table.entityType,
             table.tenantId,
         ),
+        uniqueIndex("custom_fields_global_code_entity_type_unique")
+            .on(table.code, table.entityType)
+            .where(sql`${table.tenantId} is null`),
         index("custom_fields_tenant_entity_active_idx").on(
             table.tenantId,
             table.entityType,

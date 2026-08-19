@@ -143,6 +143,7 @@ export class CompaniesService {
         context: RequestContext,
         body: Readonly<Record<string, unknown>>,
         includes: readonly CompanyInclude[],
+        creationSource: "api" | "chat" = "api",
     ): Promise<CompanyView> {
         const data = validateCreateCompany(body);
         const id = this.createId();
@@ -161,7 +162,7 @@ export class CompaniesService {
             teamId: context.teamId,
             creatorId: context.userId,
             name: data.name,
-            creationSource: "api",
+            creationSource,
             occurredAt: this.now(),
             customFields,
         });

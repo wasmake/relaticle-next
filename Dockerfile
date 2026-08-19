@@ -32,9 +32,16 @@ WORKDIR /app
 COPY --from=build --chown=node:node /app/apps/web/.next/standalone ./
 COPY --from=build --chown=node:node /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=build --chown=node:node /app/apps/web/public ./apps/web/public
+COPY --from=build --chown=node:node /app/apps/web/content ./apps/web/content
 COPY --from=build --chown=node:node /app/dist/worker ./dist/worker
+COPY --from=build --chown=node:node /app/dist/scheduler ./dist/scheduler
 COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules
+COPY --chown=node:node drizzle ./drizzle
+COPY --chown=node:node scripts/db-migrate.mjs ./scripts/db-migrate.mjs
 COPY --chown=node:node package.json ./
+
+RUN mkdir -p storage/app/csv storage/app/media storage/app/imports storage/framework \
+    && chown -R node:node storage
 
 USER node
 

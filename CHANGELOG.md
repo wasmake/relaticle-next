@@ -17,8 +17,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added Laravel-compatible REST API rate limiting with workspace and credential buckets stored in Redis.
 - Added transactional CRM activity logging for native and custom-field changes across companies, people, opportunities, tasks, and notes.
 - Added BullMQ queue contracts and a production Node worker for task-assignment database notifications and Resend email delivery.
-- Added Next.js and worker build scripts, a Node-only production image, and separate Compose web and worker services.
+- Added browser authentication, onboarding, workspace administration, profiles, notifications, and two-factor/social authentication.
+- Added complete browser CRM resources, boards, global search, activity timelines, custom-field administration, media, and file uploads.
+- Added CSV import/export workers, AI chat and CRM tools, Stripe billing, OAuth 2.1, MCP, documentation, help, blog, marketing, and system administration.
+- Added a Node-owned 51-table migration baseline, database bootstrap service, three BullMQ queue workers, and a cluster-safe scheduler with every scheduled handler.
+- Added Next.js, worker, and scheduler build scripts, a Node-only production image, and Compose web, worker, scheduler, migration, PostgreSQL, and Redis services.
 - Added TypeScript workflow and compatibility coverage under `tests/next`.
+- Added Playwright desktop/mobile browser coverage with migrated PostgreSQL and Redis CI services.
 
 ### Changed
 
@@ -40,15 +45,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Verification
 
-- `npm run check` passes with 226 tests across 16 test files.
-- Next.js and Node worker production builds pass.
+- `npm run check` passes with 373 tests across 39 test files.
+- Next.js, Node worker, and scheduler production builds pass.
+- Playwright browser coverage passes locally; database-backed scenarios run in CI against a fresh migrated schema.
 - `npm audit` reports zero known vulnerabilities.
 - Docker Compose configuration validation passes.
-
-### Known Limitations
-
-- No browser CRM or authentication UI is implemented yet.
-- A fresh-database migration system is not implemented; an existing compatible PostgreSQL schema is required.
-- Live PostgreSQL, Redis, BullMQ, and Resend integration requires a configured production-shaped environment.
-- Company favicon fetching and first-CRM-data subscriber tagging are not yet implemented in the Next.js write path.
-- Remaining product areas, including chat, imports, MCP, OAuth, billing UI, documentation, blog, and system administration, are not implemented.

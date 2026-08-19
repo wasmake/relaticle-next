@@ -26,7 +26,7 @@ export type CreateOpportunityTransaction = Readonly<{
     companyId: Ulid | null;
     contactId: Ulid | null;
     name: string;
-    creationSource: "api";
+    creationSource: "api" | "chat";
     occurredAt: Date;
     customFields: PreparedCustomFieldWrite;
 }>;

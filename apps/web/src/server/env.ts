@@ -20,6 +20,11 @@ const optionalUrl = z.preprocess(
     z.url().optional(),
 );
 
+const publicHttpUrl = z.url().refine((value) => {
+    const protocol = new URL(value).protocol;
+    return protocol === "http:" || protocol === "https:";
+}, "Must be an HTTP or HTTPS URL.");
+
 const environmentBoolean = (defaultValue: boolean) =>
     z
         .preprocess((value: unknown): unknown => {
@@ -45,7 +50,7 @@ const environmentSchema = z.object({
         .enum(["development", "test", "production"])
         .default("development"),
     APP_NAME: z.string().min(1).default("Relaticle"),
-    APP_URL: z.url().default("http://localhost:3000"),
+    APP_URL: publicHttpUrl.default("http://localhost:3000"),
     APP_KEY: optionalString,
     APP_PREVIOUS_KEYS: optionalString,
     APP_TIMEZONE: z.string().min(1).default("UTC"),
@@ -82,12 +87,37 @@ const environmentSchema = z.object({
         .default(2_000),
     ACTIVITYLOG_ENABLED: environmentBoolean(true),
     REQUIRE_EMAIL_VERIFICATION: environmentBoolean(true),
+    REMEMBER_ME_DAYS: z.coerce.number().int().min(1).max(365).default(30),
+    MAIL_MAILER: z.enum(["resend", "log"]).default("log"),
+    MAIL_FROM_ADDRESS: z.email().default("hello@example.com"),
+    MAIL_FROM_NAME: z.string().min(1).default("Relaticle"),
+    RESEND_KEY: optionalString,
+    TURNSTILE_SITE_KEY: optionalString,
+    TURNSTILE_SECRET_KEY: optionalString,
+    GITHUB_CLIENT_ID: optionalString,
+    GITHUB_CLIENT_SECRET: optionalString,
+    GOOGLE_CLIENT_ID: optionalString,
+    GOOGLE_CLIENT_SECRET: optionalString,
+    MAILCOACH_API_ENDPOINT: optionalUrl,
+    MAILCOACH_API_TOKEN: optionalString,
+    MAILCOACH_ENABLED_SUBSCRIBERS_SYNC: environmentBoolean(false),
     RELATICLE_FEATURE_BILLING: environmentBoolean(false),
     RELATICLE_FEATURE_BLOG: environmentBoolean(true),
     RELATICLE_FEATURE_DOCUMENTATION: environmentBoolean(true),
     RELATICLE_FEATURE_ONBOARD_SEED: environmentBoolean(true),
     RELATICLE_FEATURE_SOCIAL_AUTH: environmentBoolean(true),
     RELATICLE_FEATURE_SUPPORT_MENU: environmentBoolean(true),
+}).superRefine((value, context) => {
+    const requirePair = (left: keyof typeof value, right: keyof typeof value) => {
+        if ((value[left] === undefined) !== (value[right] === undefined)) {
+            context.addIssue({ code: "custom", path: [String(left)], message: `${String(left)} and ${String(right)} must be configured together.` });
+        }
+    };
+    requirePair("GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET");
+    requirePair("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET");
+    requirePair("TURNSTILE_SITE_KEY", "TURNSTILE_SECRET_KEY");
+    if (value.MAIL_MAILER === "resend" && value.RESEND_KEY === undefined) context.addIssue({ code: "custom", path: ["RESEND_KEY"], message: "RESEND_KEY is required when MAIL_MAILER=resend." });
+    if (value.MAILCOACH_ENABLED_SUBSCRIBERS_SYNC && (value.MAILCOACH_API_ENDPOINT === undefined || value.MAILCOACH_API_TOKEN === undefined)) context.addIssue({ code: "custom", path: ["MAILCOACH_API_ENDPOINT"], message: "Mailcoach endpoint and token are required when subscriber sync is enabled." });
 });
 
 export type Environment = z.infer<typeof environmentSchema>;

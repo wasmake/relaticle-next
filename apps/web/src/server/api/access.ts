@@ -112,6 +112,7 @@ export class ProductionApiAccessResolver implements ApiAccessResolver {
         if (!authentication.ok) {
             const rateLimitedTeamFailure = [
                 "team_not_found",
+                "team_scheduled_for_deletion",
                 "team_membership_required",
             ].includes(authentication.failure.reason);
 

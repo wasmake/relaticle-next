@@ -1,4 +1,21 @@
 services:
+  migrate:
+    build:
+      context: .
+      target: production
+    image: ghcr.io/wasmake/relaticle-next:latest
+    command: ["node", "scripts/db-migrate.mjs"]
+    restart: "no"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-relaticle}
+      DB_USERNAME: ${DB_USERNAME:-relaticle}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   web:
     build:
       context: .
@@ -14,7 +31,7 @@ services:
       PORT: 3000
       APP_NAME: ${APP_NAME:-Relaticle Next}
       APP_URL: ${APP_URL:-http://localhost:3000}
-      APP_KEY: ${APP_KEY:-}
+      APP_KEY: ${APP_KEY:?APP_KEY is required and must be a valid base64 key}
       APP_PREVIOUS_KEYS: ${APP_PREVIOUS_KEYS:-}
       APP_TIMEZONE: ${APP_TIMEZONE:-UTC}
       APP_PANEL_DOMAIN: ${APP_PANEL_DOMAIN:-}
@@ -36,9 +53,32 @@ services:
       ACTIVITYLOG_ENABLED: ${ACTIVITYLOG_ENABLED:-true}
       REQUIRE_EMAIL_VERIFICATION: ${REQUIRE_EMAIL_VERIFICATION:-true}
       RELATICLE_FEATURE_BILLING: ${RELATICLE_FEATURE_BILLING:-false}
+      MAIL_MAILER: ${MAIL_MAILER:-log}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@example.com}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Relaticle Next}
+      RESEND_KEY: ${RESEND_KEY:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      STRIPE_SECRET: ${STRIPE_SECRET:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PRO_MONTHLY_PRICE_ID: ${STRIPE_PRO_MONTHLY_PRICE_ID:-}
+      STRIPE_PRO_YEARLY_PRICE_ID: ${STRIPE_PRO_YEARLY_PRICE_ID:-}
+      STRIPE_CREDIT_PACK_PRICE_ID: ${STRIPE_CREDIT_PACK_PRICE_ID:-}
+      MAILCOACH_ENABLED_SUBSCRIBERS_SYNC: ${MAILCOACH_ENABLED_SUBSCRIBERS_SYNC:-false}
+      MAILCOACH_API_ENDPOINT: ${MAILCOACH_API_ENDPOINT:-}
+      MAILCOACH_API_TOKEN: ${MAILCOACH_API_TOKEN:-}
+    volumes:
+      - storage:/app/storage
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
     healthcheck:
@@ -73,11 +113,74 @@ services:
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@example.com}
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Relaticle Next}
       RESEND_KEY: ${RESEND_KEY:-}
+      APP_KEY: ${APP_KEY:?APP_KEY is required and must be a valid base64 key}
+      APP_PREVIOUS_KEYS: ${APP_PREVIOUS_KEYS:-}
+      HEALTH_PORT: 3001
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      MAILCOACH_API_ENDPOINT: ${MAILCOACH_API_ENDPOINT:-}
+      MAILCOACH_API_TOKEN: ${MAILCOACH_API_TOKEN:-}
+    volumes:
+      - storage:/app/storage
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    stop_signal: SIGTERM
+    stop_grace_period: 60s
+
+  scheduler:
+    image: ghcr.io/wasmake/relaticle-next:latest
+    restart: unless-stopped
+    init: true
+    command: ["node", "dist/scheduler/apps/scheduler/index.js"]
+    environment:
+      APP_URL: ${APP_URL:-http://web:3000}
+      APP_TIMEZONE: ${APP_TIMEZONE:-UTC}
+      APP_PANEL_PATH: ${APP_PANEL_PATH:-app}
+      HEALTH_PORT: 3002
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-relaticle}
+      DB_USERNAME: ${DB_USERNAME:-relaticle}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      BULLMQ_PREFIX: ${BULLMQ_PREFIX:-bull}
+      MAIL_MAILER: ${MAIL_MAILER:-log}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@example.com}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Relaticle Next}
+      RESEND_KEY: ${RESEND_KEY:-}
+      STRIPE_SECRET: ${STRIPE_SECRET:-}
+      MAILCOACH_ENABLED_SUBSCRIBERS_SYNC: ${MAILCOACH_ENABLED_SUBSCRIBERS_SYNC:-false}
+      MAILCOACH_API_ENDPOINT: ${MAILCOACH_API_ENDPOINT:-}
+      MAILCOACH_API_TOKEN: ${MAILCOACH_API_TOKEN:-}
+    volumes:
+      - storage:/app/storage
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+      worker:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3002/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     stop_signal: SIGTERM
     stop_grace_period: 60s
 
@@ -115,3 +218,4 @@ services:
 volumes:
   postgres:
   redis:
+  storage:

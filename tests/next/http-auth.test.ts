@@ -59,6 +59,7 @@ const defaultTeam = (
     name: "Analytical Engines",
     slug: "analytical-engines",
     personalTeam: false,
+    scheduledDeletionAt: null,
     ...overrides,
 });
 
@@ -563,6 +564,16 @@ describe("HTTP authenticated user and tenant gates", () => {
         );
 
         expectFailure(result, "team_not_found", 403);
+    });
+
+    it("rejects a workspace as soon as deletion is scheduled", async () => {
+        const repository = new InMemoryHttpAuthRepository({
+            tokens: [defaultToken()],
+            teams: [defaultTeam({ scheduledDeletionAt: new Date(now) })],
+        });
+        const result = await resolve(repository, request("GET", bearerHeaders));
+
+        expectFailure(result, "team_scheduled_for_deletion", 403);
     });
 
     it("rejects a team when the user is neither owner nor team_user member", async () => {

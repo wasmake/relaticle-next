@@ -215,6 +215,7 @@ export class CustomFieldsService {
         private readonly repository: CustomFieldRepository,
         private readonly now: () => Date = () => new Date(),
         private readonly encryption?: CustomFieldEncryption,
+        private readonly mediaReferences?: Readonly<{ owns(teamId: string, entityType: CustomFieldEntityType, entityId: string, uuid: string): Promise<boolean> }>,
     ) {}
 
     public async prepareWrite(
@@ -290,6 +291,13 @@ export class CustomFieldsService {
 
             if (hasValidationIssue(result)) {
                 issues.push(result);
+            } else if (
+                definition.type === "file-upload" &&
+                typeof result.value === "string" &&
+                this.mediaReferences !== undefined &&
+                !await this.mediaReferences.owns(context.teamId, request.entityType, request.entityId, result.value)
+            ) {
+                issues.push({ path: `custom_fields.${definition.code}`, message: "must reference a file owned by this record." });
             } else {
                 validated.push({ definition, ...result });
             }

@@ -1,18 +1,23 @@
 {
     "compilerOptions": {
         "target": "ES2022",
-        "lib": ["ES2022", "DOM"],
+        "lib": ["ESNext", "DOM"],
         "strict": true,
         "noEmit": false,
         "rootDir": "../..",
         "outDir": "../../dist/worker",
-        "module": "NodeNext",
-        "moduleResolution": "NodeNext",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
         "isolatedModules": true,
+        "skipLibCheck": true,
         "noUncheckedIndexedAccess": true,
         "exactOptionalPropertyTypes": true,
         "noImplicitOverride": true,
-        "types": ["node"]
+        "types": ["node"],
+        "paths": {
+            "@/*": ["../web/src/*"],
+            "@queue/*": ["../../packages/queue/src/*"]
+        }
     },
-    "include": ["./**/*.ts", "../../packages/queue/src/**/*.ts"]
+    "include": ["./**/*.ts", "../web/src/**/*.d.ts", "../../packages/queue/src/**/*.ts"]
 }

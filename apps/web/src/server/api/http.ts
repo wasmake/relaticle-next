@@ -47,6 +47,7 @@ export const handleAuthenticatedApiRequest = async (
     request: Request,
     accessResolver: ApiAccessResolver,
     handler: AuthenticatedApiHandler,
+    requiredAbility = apiAbilityForHttpMethod(request.method),
 ): Promise<Response> => {
     const requestId = requestIdFor(request);
 
@@ -76,9 +77,7 @@ export const handleAuthenticatedApiRequest = async (
             );
         }
 
-        const ability = apiAbilityForHttpMethod(request.method);
-
-        if (!hasApiAbility(authentication.context, ability)) {
+        if (!hasApiAbility(authentication.context, requiredAbility)) {
             return jsonResponse({ message: "Forbidden." }, 403, requestId);
         }
 

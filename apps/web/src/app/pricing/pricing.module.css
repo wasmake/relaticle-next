@@ -1,0 +1,31 @@
+.page { min-height: 100vh; padding: 1.5rem clamp(1.2rem, 5vw, 5rem) 3rem; color: #18201d; background: radial-gradient(circle at 78% 17%, #ffd8bd 0, transparent 25%), #f5f1e7; }
+.nav { display: flex; align-items: center; justify-content: space-between; padding-bottom: 1.2rem; border-bottom: 1px solid #ccc5b5; }
+.nav div { display: flex; align-items: center; gap: 1.3rem; }
+.nav a { text-decoration: none; font-size: .9rem; }
+.wordmark { font: 700 1.4rem Georgia, serif !important; letter-spacing: -.04em; }
+.navAction, .primaryAction { color: #fff; background: #234b3c; }
+.navAction { padding: .65rem 1rem; border-radius: 999px; }
+.hero { max-width: 1000px; padding: clamp(4.5rem, 10vw, 8rem) 0 clamp(3rem, 7vw, 6rem); }
+.eyebrow, .planLabel { color: #d85531; font: 800 .72rem Arial, sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+.hero h1 { margin: .8rem 0 1.6rem; font: 500 clamp(3.2rem, 7.5vw, 7rem)/.92 Georgia, serif; letter-spacing: -.06em; }
+.hero > p:last-child { max-width: 630px; margin: 0; color: #4f5b56; font-size: clamp(1.05rem, 2vw, 1.3rem); line-height: 1.55; }
+.plans { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, .7fr); border: 1px solid #cfc7b7; background: #fffdf7; box-shadow: 12px 12px 0 #ded6c6; }
+.proPlan { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem 3rem; padding: clamp(1.5rem, 4vw, 3rem); border-right: 1px solid #cfc7b7; }
+.proPlan h2, .sidePlans h2 { margin: .65rem 0; font: 500 clamp(2rem, 4vw, 3.5rem) Georgia, serif; letter-spacing: -.04em; }
+.proPlan h2 small { color: #66706b; font: 400 1rem Arial, sans-serif; }
+.proPlan p, .sidePlans p { color: #5a6560; line-height: 1.55; }
+.proPlan ul { margin: 0; padding: 0; list-style: none; }
+.proPlan li { padding: .8rem 0; border-bottom: 1px solid #e2dccf; }
+.proPlan li::before { content: "✓"; margin-right: .7rem; color: #d85531; font-weight: 800; }
+.primaryAction { align-self: end; width: fit-content; padding: .95rem 1.25rem; text-decoration: none; font-weight: 800; }
+.annualNote { align-self: center; margin: 0 !important; font-size: .85rem; }
+.sidePlans { display: grid; grid-template-rows: 1fr 1fr; }
+.sidePlans article { padding: clamp(1.5rem, 3vw, 2.4rem); }
+.sidePlans h2 { font-size: 2rem; }
+.enterprise { color: #fff; background: #234b3c; }
+.enterprise .planLabel { color: #ffc29e; }
+.enterprise p { color: #c6d7cf; }
+.enterprise a { color: #fff; font-weight: 800; }
+.footer { display: flex; justify-content: space-between; gap: 1rem; padding-top: 3rem; color: #59645f; font-size: .9rem; }
+@media (max-width: 760px) { .hero br { display: none; } .plans { grid-template-columns: 1fr; } .proPlan { grid-template-columns: 1fr; border-right: 0; border-bottom: 1px solid #cfc7b7; } .footer { flex-direction: column; } }
+@media (max-width: 440px) { .nav div > a:first-child { display: none; } .sidePlans { grid-template-rows: auto; } }

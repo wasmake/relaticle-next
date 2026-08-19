@@ -85,10 +85,12 @@ export const oauthRefreshTokens = pgTable(
     {
         id: char("id", { length: 80 }).primaryKey(),
         accessTokenId: char("access_token_id", { length: 80 }).notNull(),
+        familyId: char("family_id", { length: 80 }).notNull(),
         revoked: boolean("revoked").notNull(),
         expiresAt: timestamp("expires_at", { mode: "date" }),
     },
     (table) => [
+        index("oauth_refresh_tokens_family_id_index").on(table.familyId),
         foreignKey({
             name: "oauth_refresh_tokens_access_token_id_foreign",
             columns: [table.accessTokenId],

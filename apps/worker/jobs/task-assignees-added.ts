@@ -1,6 +1,7 @@
 import {
     taskAssigneeEmailJobName,
     taskAssigneesAddedJobSchema,
+    jobOptionsFor,
     type TaskAssigneeEmailJob,
 } from "../../../packages/queue/src/jobs.js";
 
@@ -37,7 +38,7 @@ export interface TaskNotificationEmailQueue {
     add(
         name: typeof taskAssigneeEmailJobName,
         data: TaskAssigneeEmailJob,
-        options: Readonly<{ jobId: string }>,
+        options: ReturnType<typeof jobOptionsFor>,
     ): Promise<unknown>;
 }
 
@@ -174,9 +175,7 @@ export class TaskAssigneesAddedProcessor {
                             taskTitle: job.taskTitle,
                             taskUrl,
                         },
-                        {
-                            jobId: `task-assignee-email-${job.eventId}-${recipient.id}`,
-                        },
+                        jobOptionsFor(taskAssigneeEmailJobName, `${job.eventId}:${recipient.id}`),
                     ),
                 );
             }

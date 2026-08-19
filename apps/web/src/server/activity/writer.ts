@@ -183,6 +183,7 @@ export class ActivityWriter {
         private readonly enabled: boolean,
         private readonly encryption?: CustomFieldEncryption,
         private readonly createBatchUuid: () => string = randomUUID,
+        private readonly firstDataCreated?: (userId: Ulid) => void | Promise<void>,
     ) {}
 
     public batchUuid(): string {
@@ -227,6 +228,7 @@ export class ActivityWriter {
             createdAt: input.occurredAt,
             updatedAt: input.occurredAt,
         });
+        if (input.event === "created") await this.firstDataCreated?.(input.causerId);
     }
 
     public async writeCustomFields(

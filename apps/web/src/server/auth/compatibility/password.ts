@@ -1,4 +1,4 @@
-import { compare } from "bcryptjs";
+import { compare, hash } from "bcryptjs";
 
 const BCRYPT_HASH_PATTERN = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/u;
 
@@ -23,3 +23,6 @@ export const verifyLaravelPassword = async (
         return false;
     }
 };
+
+export const hashLaravelPassword = (password: string): Promise<string> =>
+    hash(password, 12);

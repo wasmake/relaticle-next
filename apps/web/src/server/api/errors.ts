@@ -1,4 +1,5 @@
 import { CustomFieldValidationError } from "@/server/custom-fields/types";
+import { RequestBodyTooLargeError } from "@/server/http/body";
 
 export type ApiValidationIssue = Readonly<{
     path: string;
@@ -39,6 +40,10 @@ const validationErrors = (
 };
 
 export const errorResponse = (error: unknown, requestId: string): Response => {
+    if (error instanceof RequestBodyTooLargeError) {
+        return jsonResponse({ message: error.message }, 413, requestId);
+    }
+
     if (error instanceof ApiBadRequestError) {
         return jsonResponse({ message: error.message }, 400, requestId);
     }

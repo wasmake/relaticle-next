@@ -137,13 +137,6 @@ export const validateScheduleContracts = <
 
 const contracts = [
     {
-        jobKey: "app:generate-sitemap",
-        arguments: [],
-        cadence: { kind: "daily", time: "00:00" },
-        overlap: allowOverlap,
-        executionScope: "every-instance",
-    },
-    {
         jobKey: "import:cleanup",
         arguments: [],
         cadence: { kind: "hourly", minute: 0 },

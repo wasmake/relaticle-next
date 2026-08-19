@@ -1,0 +1,41 @@
+.page { min-height: 100vh; background: #f7f5ef; color: #18221e; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem clamp(1.25rem, 5vw, 5rem); border-bottom: 1px solid #d8d4c8; background: rgba(247, 245, 239, .94); }
+.brand { font: 700 1.3rem Georgia, serif; text-decoration: none; }
+.nav { display: flex; gap: 1.25rem; font-size: .9rem; }
+.nav a { text-decoration: none; }
+.main { width: min(1100px, calc(100% - 2.5rem)); margin: 0 auto; padding: clamp(3rem, 8vw, 6rem) 0; }
+.eyebrow { color: #b74625; font-size: .72rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.title { max-width: 850px; margin: .6rem 0 1rem; font: 500 clamp(2.8rem, 7vw, 5.5rem)/.98 Georgia, serif; letter-spacing: -.045em; }
+.description { max-width: 720px; color: #58635e; font-size: 1.15rem; line-height: 1.65; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 3.5rem; border-top: 1px solid #d8d4c8; border-left: 1px solid #d8d4c8; }
+.card { min-height: 175px; padding: 1.6rem; border-right: 1px solid #d8d4c8; border-bottom: 1px solid #d8d4c8; background: #fffdf8; text-decoration: none; }
+.card h2, .card h3 { margin: 0 0 .65rem; font: 600 1.2rem Georgia, serif; }
+.card p { margin: 0; color: #65706b; line-height: 1.55; }
+.card span { display: block; margin-top: 1.4rem; color: #b74625; font-size: .8rem; font-weight: 700; }
+.articleLayout { display: grid; grid-template-columns: minmax(0, 760px) 220px; gap: clamp(2rem, 7vw, 6rem); align-items: start; }
+.article { min-width: 0; }
+.articleHeader { padding-bottom: 2rem; border-bottom: 1px solid #d8d4c8; }
+.articleHeader h1 { margin: .5rem 0 1rem; font: 500 clamp(2.4rem, 6vw, 4.5rem)/1 Georgia, serif; letter-spacing: -.04em; }
+.updated { color: #737b77; font-size: .8rem; }
+.body { font-size: 1rem; line-height: 1.75; }
+.body h2 { margin: 3.25rem 0 1rem; font: 600 1.85rem Georgia, serif; scroll-margin-top: 2rem; }
+.body h3 { margin: 2.3rem 0 .8rem; font: 600 1.35rem Georgia, serif; }
+.body h4 { margin: 2rem 0 .7rem; font-size: 1rem; }
+.body a { color: #9d3518; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.body code { border-radius: 3px; padding: .12rem .3rem; background: #e9e5da; font-size: .88em; }
+.body pre { overflow-x: auto; padding: 1.2rem; color: #f5f2e9; background: #1d2924; line-height: 1.55; }
+.body pre code { padding: 0; background: transparent; }
+.body img { max-width: 100%; height: auto; margin: 1rem 0; border: 1px solid #d8d4c8; }
+.body table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.body th, .body td { padding: .7rem; border: 1px solid #d8d4c8; text-align: left; vertical-align: top; }
+.body th { background: #ebe7dc; }
+.body blockquote { margin-left: 0; padding-left: 1rem; border-left: 3px solid #b74625; color: #58635e; }
+.body hr { margin: 2.5rem 0; border: 0; border-top: 1px solid #d8d4c8; }
+.toc { position: sticky; top: 2rem; padding-left: 1rem; border-left: 1px solid #d8d4c8; }
+.toc strong { display: block; margin-bottom: .75rem; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; }
+.toc a { display: block; margin: .55rem 0; color: #65706b; font-size: .82rem; line-height: 1.35; text-decoration: none; }
+.back { display: inline-block; margin-bottom: 2rem; color: #65706b; font-size: .85rem; text-decoration: none; }
+.related { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #d8d4c8; }
+.related h2 { font: 600 1.4rem Georgia, serif; }
+.related a { display: block; margin: .5rem 0; color: #9d3518; }
+@media (max-width: 760px) { .grid, .articleLayout { grid-template-columns: 1fr; } .toc { display: none; } .header { align-items: flex-start; } .nav { gap: .75rem; font-size: .82rem; } }

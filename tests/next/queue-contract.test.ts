@@ -79,11 +79,6 @@ describe("scheduler contracts", () => {
             ),
         ).toEqual([
             {
-                jobKey: "app:generate-sitemap",
-                arguments: [],
-                cadence: { kind: "daily", time: "00:00" },
-            },
-            {
                 jobKey: "import:cleanup",
                 arguments: [],
                 cadence: { kind: "hourly", minute: 0 },
@@ -221,7 +216,7 @@ describe("scheduler contracts", () => {
     });
 
     it("applies the health gate and application time zone", () => {
-        expect(getSchedulerProcessContract({}).jobs).toHaveLength(13);
+        expect(getSchedulerProcessContract({}).jobs).toHaveLength(12);
 
         const enabled = getSchedulerProcessContract({
             APP_TIMEZONE: "America/New_York",
@@ -229,7 +224,7 @@ describe("scheduler contracts", () => {
         });
 
         expect(enabled.timeZone).toBe("America/New_York");
-        expect(enabled.jobs).toHaveLength(16);
+        expect(enabled.jobs).toHaveLength(15);
         expect(enabled.jobs.slice(-3).map(({ jobKey }) => jobKey)).toEqual([
             "health:check",
             "health:queue-check-heartbeat",
@@ -252,7 +247,7 @@ describe("scheduler contracts", () => {
                 first,
                 { ...second, jobKey: first.jobKey },
             ]),
-        ).toThrow(/Duplicate scheduled job key: app:generate-sitemap/);
+        ).toThrow(/Duplicate scheduled job key: import:cleanup/);
     });
 
     it.each([0, 59_999, 1.5, 2_147_483_648, Number.POSITIVE_INFINITY])(

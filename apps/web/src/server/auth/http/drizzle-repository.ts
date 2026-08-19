@@ -71,6 +71,7 @@ export class DrizzleHttpAuthRepository implements HttpAuthRepository {
                 id: sessions.id,
                 userId: sessions.userId,
                 lastActivity: sessions.lastActivity,
+                payload: sessions.payload,
             })
             .from(sessions)
             .where(eq(sessions.id, sessionId))
@@ -108,6 +109,7 @@ export class DrizzleHttpAuthRepository implements HttpAuthRepository {
                 name: teams.name,
                 slug: teams.slug,
                 personalTeam: teams.personalTeam,
+                scheduledDeletionAt: teams.scheduledDeletionAt,
             })
             .from(teams)
             .where(eq(teams.id, teamId))

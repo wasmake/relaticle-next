@@ -23,7 +23,6 @@ import type {
 } from "@/server/custom-fields/types";
 import {
     CustomFieldValidationError,
-    UnsupportedCustomFieldSemanticsError,
 } from "@/server/custom-fields/types";
 import { customFieldValues } from "@/server/db/schema";
 import { ulidSchema, type Ulid } from "@/server/ids";
@@ -839,19 +838,24 @@ describe("custom-field API formatting and explicit gaps", () => {
         });
     });
 
-    it.each([
-        {
-            type: "file-upload",
-            overrides: {},
-            reason: "no Node media upload contract",
-        },
-        {
-            type: "phone",
-            overrides: { settings: { encrypted: true } },
-            reason: "only safe for scalar text and select",
-        },
-    ])("fails explicitly for unsupported $type semantics", async ({ type, overrides, reason }) => {
-        const field = definition(type, `unsupported_${type}`, overrides);
+    it("stores an owned media UUID for file-upload fields", async () => {
+        const field = definition("file-upload", "contract");
+        const uuid = "123e4567-e89b-42d3-a456-426614174000";
+        const repository = new InMemoryCustomFieldRepository([field]);
+        const service = new CustomFieldsService(repository, () => new Date(), undefined, { owns: async (candidateTeamId, entityType, candidateEntityId, candidateUuid) => candidateTeamId === teamId && entityType === "company" && candidateEntityId === entityId && candidateUuid === uuid });
+        await service.write({ teamId }, { entityType: "company", entityId, operation: "update", customFields: { contract: uuid } });
+        expect(repository.values[0]?.stringValue).toBe(uuid);
+        expect(await service.format({ teamId }, "company", entityId)).toEqual({ contract: uuid });
+    });
+
+    it("rejects a file-upload UUID not owned by the target record", async () => {
+        const field = definition("file-upload", "contract");
+        const service = new CustomFieldsService(new InMemoryCustomFieldRepository([field]), () => new Date(), undefined, { owns: async () => false });
+        await expect(service.prepareWrite({ teamId }, { entityType: "company", entityId, operation: "update", customFields: { contract: "123e4567-e89b-42d3-a456-426614174000" } })).rejects.toBeInstanceOf(CustomFieldValidationError);
+    });
+
+    it("fails explicitly for unsafe encrypted field semantics", async () => {
+        const field = definition("phone", "unsupported_phone", { settings: { encrypted: true } });
         const service = new CustomFieldsService(
             new InMemoryCustomFieldRepository([field]),
         );
@@ -866,9 +870,6 @@ describe("custom-field API formatting and explicit gaps", () => {
             },
         );
 
-        await expect(promise).rejects.toBeInstanceOf(
-            UnsupportedCustomFieldSemanticsError,
-        );
-        await expect(promise).rejects.toThrow(reason);
+        await expect(promise).rejects.toThrow("only safe for scalar text and select");
     });
 });

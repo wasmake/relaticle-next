@@ -120,6 +120,7 @@ export class OpportunitiesService {
         context: RequestContext,
         body: Readonly<Record<string, unknown>>,
         includes: readonly OpportunityInclude[],
+        creationSource: "api" | "chat" = "api",
     ): Promise<OpportunityView> {
         const data = validateCreateOpportunity(body);
         await this.assertForeignKeys(context, data);
@@ -142,7 +143,7 @@ export class OpportunitiesService {
             companyId: data.companyId ?? null,
             contactId: data.contactId ?? null,
             name: data.name,
-            creationSource: "api",
+            creationSource,
             occurredAt: this.now(),
             customFields,
         });

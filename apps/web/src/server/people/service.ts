@@ -136,6 +136,7 @@ export class PeopleService {
         body: Readonly<Record<string, unknown>>,
         includes: readonly PeopleInclude[],
         fields?: readonly PeopleSparseField[],
+        creationSource: "api" | "chat" = "api",
     ): Promise<PeopleView> {
         const data = validateCreatePeople(body);
         await this.assertCompanyOwned(context.teamId, data.companyId);
@@ -157,7 +158,7 @@ export class PeopleService {
             creatorId: context.userId,
             companyId: data.companyId,
             name: data.name,
-            creationSource: "api",
+            creationSource,
             occurredAt: this.now(),
             customFields,
         });

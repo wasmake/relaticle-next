@@ -21,7 +21,7 @@ export type CreateTaskTransaction = TaskRelationshipIds &
         teamId: Ulid;
         creatorId: Ulid;
         title: string;
-        creationSource: "api";
+        creationSource: "api" | "chat";
         occurredAt: Date;
         customFields: PreparedCustomFieldWrite;
     }>;

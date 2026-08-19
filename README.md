@@ -1,62 +1,41 @@
 # Relaticle Next
 
-Relaticle Next is a standalone Node.js migration of the Relaticle CRM backend. It uses Next.js App Router route handlers for the HTTP API, PostgreSQL through Drizzle ORM, Redis for rate limiting and queues, and BullMQ workers for asynchronous notifications.
+Relaticle Next is the Node.js edition of Relaticle, an open-source relationship workspace for companies, people, opportunities, tasks, notes, and AI-assisted work. The application is implemented with Next.js, React, PostgreSQL, Redis, BullMQ, and Drizzle ORM.
 
 This repository contains no PHP runtime or Composer dependencies.
 
-## Current Status
+## Product
 
-The implemented surface is an API backend, not a complete CRM product replacement.
+- Browser authentication, registration, password reset, email verification, social login, remember-me sessions, and two-factor authentication.
+- Workspace onboarding, switching, invitations, membership roles, profiles, session management, deletion workflows, and notification preferences.
+- Company, people, opportunity, task, and note lists, details, editing, trash/restore, activity timelines, global search, and task/opportunity boards.
+- Dynamic custom-field sections, definitions, options, validation, encrypted values, record fields, and file uploads.
+- CSV import/export with validation, relationship columns, custom fields, history, failed rows, and durable workers.
+- AI chat with conversations, streaming providers, mentions, feedback, credits, cancellation, CRM tools, and approval-gated writes.
+- Personal access tokens, OAuth 2.1 discovery/registration/PKCE/refresh/revocation, and a workspace-bound MCP JSON-RPC server.
+- Stripe-compatible trials, subscriptions, portal, credit packs, webhooks, and hosted-workspace access enforcement.
+- Public marketing, pricing, contact, legal, comparison, documentation, help, blog, RSS, sitemap, and SEO surfaces.
+- System administration for users, workspaces, CRM data, imports, billing, activity, AI usage, administrators, and blog authoring.
+- Node-owned PostgreSQL migrations, BullMQ workers for `default`, `imports`, and `chat`, and a cluster-safe scheduler.
 
-- Available: health checks, authentication compatibility, workspace isolation, hosted-access enforcement, CRM CRUD APIs, custom-field persistence, activity logging, API throttling, and task-assignment notifications.
-- Not available: browser CRM pages, login or registration pages, chat, imports, MCP, OAuth flows, billing UI, documentation, blog, system administration, and a scheduler runtime.
-- Database requirement: the application currently targets an existing Relaticle PostgreSQL schema. A fresh-database migration system is not included yet.
-- Credential compatibility: existing encrypted session cookies, personal access tokens, bcrypt hashes, and encrypted custom fields remain readable when the matching `APP_KEY` is supplied.
+Existing Relaticle credentials remain compatible when the original `APP_KEY` is configured: encrypted session cookies, bcrypt hashes, personal access tokens, and encrypted custom-field values can continue to be used.
 
 ## Stack
 
 - Node.js 22
 - Next.js 16 and React 19
 - TypeScript 6
-- PostgreSQL 17
-- Drizzle ORM
-- Redis and BullMQ
-- Resend for production email delivery
-- Vitest
-
-## API
-
-Public endpoints:
-
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `GET` | `/up` | Process liveness |
-| `GET` | `/health/ready` | PostgreSQL and Redis readiness |
-
-Authenticated endpoints:
-
-| Methods | Path |
-| --- | --- |
-| `GET` | `/api/v1/user` |
-| `GET`, `POST` | `/api/v1/companies` |
-| `GET`, `PUT`, `PATCH`, `DELETE` | `/api/v1/companies/{companyId}` |
-| `GET`, `POST` | `/api/v1/people` |
-| `GET`, `PUT`, `PATCH`, `DELETE` | `/api/v1/people/{personId}` |
-| `GET`, `POST` | `/api/v1/opportunities` |
-| `GET`, `PUT`, `PATCH`, `DELETE` | `/api/v1/opportunities/{opportunityId}` |
-| `GET`, `POST` | `/api/v1/tasks` |
-| `GET`, `PUT`, `PATCH`, `DELETE` | `/api/v1/tasks/{taskId}` |
-| `GET`, `POST` | `/api/v1/notes` |
-| `GET`, `PUT`, `PATCH`, `DELETE` | `/api/v1/notes/{noteId}` |
-
-Authentication supports existing personal access tokens and database-backed encrypted sessions. A token-bound workspace takes precedence over `X-Team-Id`, which takes precedence over the user's current workspace.
+- PostgreSQL 17 and Drizzle ORM
+- Redis 7 and BullMQ
+- Resend or log email delivery
+- Vitest and Playwright
 
 ## Requirements
 
 - Node.js `>=22.12.0`
 - npm
-- PostgreSQL with the existing Relaticle schema
-- Redis
+- PostgreSQL 17+
+- Redis 7+
 
 ## Local Setup
 
@@ -65,104 +44,132 @@ git clone https://github.com/wasmake/relaticle-next.git
 cd relaticle-next
 npm ci
 cp .env.example .env
-```
-
-Configure PostgreSQL and Redis in `.env`, then start the API:
-
-```bash
+npm run db:migrate
 npm run dev
 ```
 
-The development server listens on `http://localhost:3000` by default.
-
-Build and run the worker separately when testing task notifications:
+Run the worker and scheduler in separate terminals:
 
 ```bash
 npm run build:worker
 npm run start:worker
 ```
 
+```bash
+npm run build:scheduler
+npm run start:scheduler
+```
+
+The browser application is available at `http://localhost:3000`.
+
 ## Environment
 
-The complete template is in `.env.example`. The principal variables are:
+The complete template is in `.env.example`.
 
 | Variable | Purpose |
 | --- | --- |
 | `APP_URL` | Public application URL |
-| `APP_KEY` | Existing encrypted-cookie and custom-field compatibility |
+| `APP_KEY` | Current 32-byte application encryption key |
 | `APP_PREVIOUS_KEYS` | Previous encryption keys used during rotation |
 | `DATABASE_URL` or `DB_*` | PostgreSQL connection |
-| `REDIS_URL` or `REDIS_*` | Redis connection |
-| `REDIS_CACHE_DB` | API rate-limit database, default `1` |
-| `BULLMQ_PREFIX` | BullMQ key prefix |
-| `REQUIRE_EMAIL_VERIFICATION` | Require verified users for API access |
-| `RELATICLE_FEATURE_BILLING` | Enable hosted-workspace subscription enforcement |
-| `MAIL_MAILER` | Worker mail transport: `log` or `resend` |
-| `RESEND_KEY` | Required when `MAIL_MAILER=resend` |
+| `REDIS_URL` or `REDIS_*` | Redis, cache, queue, lock, and health connections |
+| `MAIL_MAILER` | `log` or `resend` |
+| `RESEND_KEY` | Resend API key when email delivery is enabled |
+| `OPENAI_API_KEY` | OpenAI chat provider |
+| `ANTHROPIC_API_KEY` | Anthropic chat provider |
+| `OLLAMA_URL` | Ollama endpoint for self-hosted chat |
+| `GITHUB_CLIENT_ID/SECRET` | GitHub browser authentication |
+| `GOOGLE_CLIENT_ID/SECRET` | Google browser authentication |
+| `TURNSTILE_SITE_KEY/SECRET_KEY` | Registration abuse protection |
+| `STRIPE_*` | Billing API, webhook, product, and price configuration |
+| `MAILCOACH_*` | Optional subscriber synchronization |
+
+External integrations are enabled only when their credentials are configured.
+
+## API And MCP
+
+The REST API is rooted at `/api/v1` and supports users, companies, people, opportunities, tasks, notes, custom-field metadata, media, personal access tokens, and import/export jobs. Core CRM resources expose collection `GET`/`POST` and record `GET`/`PUT`/`PATCH`/`DELETE` operations.
+
+Authentication supports encrypted database sessions, workspace-bound personal access tokens, and OAuth bearer tokens. Token abilities are `read`, `create`, `update`, and `delete`.
+
+OAuth and MCP endpoints:
+
+| Path | Purpose |
+| --- | --- |
+| `/.well-known/oauth-authorization-server` | OAuth authorization-server metadata |
+| `/.well-known/oauth-protected-resource/mcp` | MCP protected-resource metadata |
+| `/oauth/register` | Dynamic client registration |
+| `/oauth/authorize` | Workspace consent and authorization code |
+| `/oauth/token` | PKCE code and refresh-token exchange |
+| `/oauth/revoke` | Token revocation |
+| `/mcp` | MCP JSON-RPC transport |
+
+The MCP server exposes identity, search/fetch, CRM summary, schema resources, an overview prompt, CRUD tools for all core entities, and task/note attachment tools.
 
 ## Commands
 
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Start the Next.js development server |
-| `npm run build` | Build the Next.js server and BullMQ worker |
+| `npm run build` | Build web, worker, and scheduler artifacts |
 | `npm run start` | Start the production Next.js server locally |
-| `npm run start:worker` | Start the compiled BullMQ worker |
+| `npm run start:worker` | Start all BullMQ queue workers |
+| `npm run start:scheduler` | Start the cluster-safe scheduler |
+| `npm run db:generate` | Generate a Drizzle migration from schema changes |
+| `npm run db:migrate` | Apply pending PostgreSQL migrations |
 | `npm run lint` | Run ESLint |
-| `npm run typecheck` | Type-check web, worker, and scheduler contracts |
-| `npm test` | Run the Vitest suite |
-| `npm run test:watch` | Run Vitest in watch mode |
-| `npm run check` | Run lint, type checks, tests, and production builds |
+| `npm run typecheck` | Type-check web, worker, and scheduler projects |
+| `npm test` | Run Vitest |
+| `npm run test:e2e` | Run Playwright on desktop and mobile Chromium |
+| `npm run check` | Run lint, types, unit tests, and production builds |
 
 ## Docker
 
-The Node-only image contains both the standalone Next.js server and compiled worker. Compose runs the same image with separate commands:
-
 ```bash
-DB_PASSWORD=change-me docker compose up --build
+DB_PASSWORD=change-me APP_KEY=base64:... docker compose up --build
 ```
 
-Services:
+Compose starts:
 
-- `web`: Next.js on port `3000`
-- `worker`: BullMQ default-queue worker
+- `migrate`: applies the Node-owned schema before application startup
+- `web`: standalone Next.js server on port `3000`
+- `worker`: `default`, `imports`, and `chat` BullMQ workers
+- `scheduler`: distributed scheduled-job runtime
 - `postgres`: PostgreSQL 17
 - `redis`: Redis 7
 
-Compose does not initialize the application schema. Restore or connect an existing compatible database before using the CRM endpoints.
+The `storage` volume is shared by web, worker, and scheduler for private media and import/export artifacts.
 
 ## Architecture
 
 ```text
 apps/
-  web/          Next.js routes, API services, database mappings
-  worker/       BullMQ task-notification worker
-  scheduler/    Schedule contracts only; no runtime yet
+  web/          Browser UI, REST API, OAuth, MCP, domain services
+  worker/       BullMQ processors and outbound integrations
+  scheduler/    Cadence, distributed locks, and scheduled operations
 packages/
-  queue/        Shared queue names, job schemas, and schedule contracts
+  queue/        Shared queue, job, and schedule contracts
+drizzle/        Node-owned PostgreSQL migrations
 tests/
-  next/         Vitest API and compatibility tests
+  next/         Vitest domain, API, worker, and scheduler tests
+  e2e/          Playwright browser tests
 ```
 
-Each CRM route follows the same path: App Router handler, access resolver, validation, service, repository, Drizzle query, and JSON:API-style response formatter.
+HTTP features follow the same boundary: route handler, authentication and tenant policy, validation, domain service, repository, Drizzle query, and response formatter. Browser server actions call the same domain services rather than bypassing API behavior.
 
 ## Verification
 
 ```bash
 npm ci
+npm run db:migrate
 npm run check
+npm run test:e2e
 npm audit --audit-level=moderate
+npm audit --omit=dev --audit-level=moderate
+DB_PASSWORD=test docker compose config --quiet
 ```
 
-## Known Limitations
-
-- No browser UI or browser authentication flow is implemented.
-- No Node database migrations are included.
-- The worker currently processes task-assignment jobs on the `default` queue only.
-- The declared `imports` and `chat` queues do not have Node processors.
-- Scheduler contracts exist, but scheduled job handlers and a scheduler process do not.
-- File-upload custom fields are rejected until a Node media lifecycle is implemented.
-- Live PostgreSQL, Redis, BullMQ, and Resend integration requires a production-shaped environment.
+Playwright CI provisions PostgreSQL and Redis, applies the migration baseline, seeds an isolated workspace, builds the production server, and executes the browser suite with failure traces, screenshots, and video artifacts.
 
 ## License
 

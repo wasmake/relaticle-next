@@ -1,12 +1,12 @@
 import { randomUUID } from "node:crypto";
 
 import {
+    jobOptionsFor,
     taskAssigneesAddedJobName,
     type TaskAssigneesAddedJob,
 } from "@queue/jobs";
 import type { Ulid } from "@/server/ids";
 import { getQueue } from "@/server/queue/client";
-import { after } from "next/server";
 
 export type NewTaskAssigneesNotification = Readonly<{
     teamId: Ulid;
@@ -25,7 +25,7 @@ export interface TaskNotificationQueue {
     add(
         name: typeof taskAssigneesAddedJobName,
         notification: TaskAssigneesAddedJob,
-        options: Readonly<{ jobId: string }>,
+        options: ReturnType<typeof jobOptionsFor>,
     ): Promise<unknown>;
 }
 
@@ -34,8 +34,7 @@ export type ScheduleAfterResponse = (callback: () => Promise<void>) => void;
 export class BullMqTaskAssigneeNotificationPort implements TaskAssigneeNotificationPort {
     public constructor(
         private readonly queue: TaskNotificationQueue | undefined = undefined,
-        private readonly schedule: ScheduleAfterResponse = (callback) =>
-            after(callback),
+        private readonly schedule: ScheduleAfterResponse = (callback) => { void callback(); },
         private readonly createUuid: () => string = randomUUID,
     ) {}
 
@@ -59,9 +58,7 @@ export class BullMqTaskAssigneeNotificationPort implements TaskAssigneeNotificat
             await (this.queue ?? getQueue("default")).add(
                 taskAssigneesAddedJobName,
                 job,
-                {
-                    jobId: `task-assignees-added-${eventId}`,
-                },
+                jobOptionsFor(taskAssigneesAddedJobName, eventId),
             );
         });
     }

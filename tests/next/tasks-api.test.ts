@@ -893,10 +893,13 @@ describe("Tasks write actions", () => {
                         },
                     ],
                 },
-                options: {
-                    jobId:
+                options: expect.objectContaining({
+                    attempts: 3,
+                    backoff: { type: "exponential", delay: 1_000 },
+                    jobId: expect.stringContaining(
                         "task-assignees-added-11111111-1111-4111-8111-111111111111",
-                },
+                    ),
+                }),
             },
         ]);
     });
