@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { createBrowserSession } from "@/server/auth/browser/session";
 import { rejectCrossOrigin } from "@/server/auth/browser/request";
+import { applicationUrl } from "@/server/auth/application-url";
 import { authenticationRateLimiter } from "@/server/auth/rate-limiter";
 import { verifyTurnstile } from "@/server/auth/turnstile";
 import { queueMailcoachEvent } from "@/server/accounts/mailcoach";
@@ -32,15 +33,15 @@ export const POST = async (request: Request): Promise<Response> => {
     });
 
     if (!credentials.success) {
-        return NextResponse.redirect(new URL("/app/login?error=invalid", request.url), 303);
+        return NextResponse.redirect(applicationUrl("/app/login?error=invalid"), 303);
     }
 
     if (!(await authenticationRateLimiter.consume("login", request.headers, credentials.data.email))) {
-        return NextResponse.redirect(new URL("/app/login?error=rate_limited", request.url), 303);
+        return NextResponse.redirect(applicationUrl("/app/login?error=rate_limited"), 303);
     }
 
     const ipAddress = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
-    if (!(await verifyTurnstile(String(formData.get("cf-turnstile-response") ?? ""), ipAddress))) return NextResponse.redirect(new URL("/app/login?error=turnstile", request.url), 303);
+    if (!(await verifyTurnstile(String(formData.get("cf-turnstile-response") ?? ""), ipAddress))) return NextResponse.redirect(applicationUrl("/app/login?error=turnstile"), 303);
 
     const next = safeNextPath(credentials.data.next);
     const result = await createBrowserSession({
@@ -54,11 +55,11 @@ export const POST = async (request: Request): Promise<Response> => {
 
     if (!result.ok) {
         if (result.reason === "two_factor_required" && result.challengeToken !== undefined) {
-            const response = NextResponse.redirect(new URL("/app/two-factor-challenge", request.url), 303);
-            response.cookies.set("relaticle_2fa_challenge", result.challengeToken, { httpOnly: true, sameSite: "lax", secure: new URL(request.url).protocol === "https:", path: "/", maxAge: 600 });
+            const response = NextResponse.redirect(applicationUrl("/app/two-factor-challenge"), 303);
+            response.cookies.set("relaticle_2fa_challenge", result.challengeToken, { httpOnly: true, sameSite: "lax", secure: applicationUrl("/").protocol === "https:", path: "/", maxAge: 600 });
             return response;
         }
-        const location = new URL("/app/login", request.url);
+        const location = applicationUrl("/app/login");
         location.searchParams.set("error", result.reason);
 
         return NextResponse.redirect(location, 303);
@@ -67,13 +68,13 @@ export const POST = async (request: Request): Promise<Response> => {
     const destination =
         safeNextPath(credentials.data.next) ??
         (result.teamSlug === null ? "/app/new" : `/app/${result.teamSlug}`);
-    const response = NextResponse.redirect(new URL(destination, request.url), 303);
+    const response = NextResponse.redirect(applicationUrl(destination), 303);
     response.cookies.set(result.cookieName, result.cookieValue, {
         httpOnly: true,
         sameSite: "lax",
         secure:
             (request.headers.get("x-forwarded-proto") ??
-                new URL(request.url).protocol.replace(":", "")) === "https",
+                applicationUrl("/").protocol.replace(":", "")) === "https",
         path: "/",
         maxAge: result.lifetimeSeconds,
     });
