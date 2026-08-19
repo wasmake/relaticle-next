@@ -7,6 +7,8 @@ import { workspaceSlug } from "@/server/workspaces/service";
 describe("browser account request security", () => {
     it("accepts only an exact, parseable request origin", () => {
         expect(hasSameOrigin(new Request("https://crm.example.test/auth/profile", { method: "POST", headers: { origin: "https://crm.example.test" } }))).toBe(true);
+        expect(hasSameOrigin(new Request("http://internal:3000/auth/profile", { method: "POST", headers: { origin: "https://crm.example.test" } }), "https://crm.example.test")).toBe(true);
+        expect(hasSameOrigin(new Request("http://internal:3000/auth/profile", { method: "POST", headers: { origin: "https://attacker.example" } }), "https://crm.example.test")).toBe(false);
         expect(hasSameOrigin(new Request("https://crm.example.test/auth/profile", { method: "POST", headers: { origin: "https://attacker.example" } }))).toBe(false);
         expect(hasSameOrigin(new Request("https://crm.example.test/auth/profile", { method: "POST", headers: { origin: "not a URL" } }))).toBe(false);
         expect(rejectCrossOrigin(new Request("https://crm.example.test/auth/profile", { method: "POST" }))?.status).toBe(403);

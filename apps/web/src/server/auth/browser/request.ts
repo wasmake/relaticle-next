@@ -1,4 +1,9 @@
-export const hasSameOrigin = (request: Request): boolean => {
+import { getEnvironment } from "@/server/env";
+
+export const hasSameOrigin = (
+    request: Request,
+    applicationUrl = getEnvironment().APP_URL,
+): boolean => {
     const origin = request.headers.get("origin");
 
     if (origin === null) {
@@ -6,7 +11,11 @@ export const hasSameOrigin = (request: Request): boolean => {
     }
 
     try {
-        return new URL(origin).origin === new URL(request.url).origin;
+        const parsedOrigin = new URL(origin).origin;
+
+        return [request.url, applicationUrl].some(
+            (url) => parsedOrigin === new URL(url).origin,
+        );
     } catch {
         return false;
     }
