@@ -44,11 +44,13 @@ jobs:
           --health-cmd "redis-cli ping"
           --health-interval 5s --health-timeout 5s --health-retries 10
     env:
+      APP_URL: http://127.0.0.1:3100
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/relaticle_e2e
       REDIS_URL: redis://127.0.0.1:6379
       APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
       REQUIRE_EMAIL_VERIFICATION: "false"
       E2E_DATABASE: "true"
+      MAIL_MAILER: log
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

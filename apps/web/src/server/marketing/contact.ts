@@ -23,11 +23,19 @@ export class FixedWindowContactRateLimiter implements ContactRateLimiter {
 
 const defaultMailDelivery: ContactMailDelivery = {
     async send(message) {
-        const apiKey = process.env.RESEND_API_KEY;
+        if ((process.env.MAIL_MAILER ?? "log") === "log") {
+            console.info("Contact email logged", {
+                from: message.email,
+                name: message.name,
+                company: message.company,
+            });
+            return;
+        }
+
+        const apiKey = process.env.RESEND_KEY;
         const recipient = process.env.CONTACT_EMAIL;
         if (apiKey === undefined || recipient === undefined) {
-            if (process.env.NODE_ENV === "production") throw new Error("Contact email delivery is not configured.");
-            return;
+            throw new Error("Contact email delivery is not configured.");
         }
         const result = await new Resend(apiKey).emails.send({
             from: process.env.MAIL_FROM_ADDRESS ?? "Relaticle <noreply@relaticle.com>",
