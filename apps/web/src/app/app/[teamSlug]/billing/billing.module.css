@@ -1,7 +1,7 @@
-.content { overflow: hidden; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+.content { overflow: hidden; font-family: var(--font-default); }
 .content header { max-width: 760px; }
 .eyebrow { margin: 0 0 .6rem; color: #7c3aed; font-size: .68rem; font-weight: 700; }
-.content h1 { margin: 0; color: #111827; font: 700 1.6rem Satoshi, Inter, sans-serif; letter-spacing: -.025em; }
+.content h1 { margin: 0; color: #111827; font: 700 1.6rem var(--font-default); letter-spacing: -.025em; }
 .content header > p:last-child { color: #6b7280; font-size: .8rem; line-height: 1.5; }
 .notice, .error, .warning { margin: 1rem 0 0; padding: .7rem .85rem; border: 1px solid #bbf7d0; border-radius: .6rem; color: #166534; background: #f0fdf4; font-size: .75rem; }
 .error { border-color: #fecaca; color: #991b1b; background: #fef2f2; }
@@ -11,15 +11,15 @@
 .planCard { grid-row: span 2; }
 .cardHeading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; color: #6b7280; font-size: .68rem; }
 .cardHeading strong { padding: .25rem .5rem; border-radius: .45rem; color: #6d28d9; background: #f5f3ff; font-size: .65rem; text-transform: capitalize; }
-.grid h2 { margin: 1.2rem 0 .6rem; color: #111827; font: 700 1.25rem Satoshi, Inter, sans-serif; text-transform: capitalize; }
+.grid h2 { margin: 1.2rem 0 .6rem; color: #111827; font: 700 1.25rem var(--font-default); text-transform: capitalize; }
 .grid article > p { max-width: 540px; color: #6b7280; font-size: .76rem; line-height: 1.5; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; margin-top: 1.5rem; }
-.grid button { padding: .55rem .8rem; border: 1px solid #7c3aed; border-radius: .6rem; color: #fff; background: #7c3aed; font: 600 .72rem Inter, sans-serif; cursor: pointer; }
+.grid button { padding: .55rem .8rem; border: 1px solid #7c3aed; border-radius: .6rem; color: #fff; background: #7c3aed; font: 600 .72rem var(--font-default); cursor: pointer; }
 .grid button.secondary { color: #6d28d9; background: #fff; }
 .grid button.textButton { border: 0; color: #6d28d9; background: transparent; text-decoration: underline; }
 .creditCard { color: #111827; }
 .creditCard > span, .trialCard > span { color: #6b7280; font-size: .68rem; font-weight: 600; }
-.creditCard > strong { display: block; margin: .75rem 0 .2rem; color: #6d28d9; font: 700 2.2rem Satoshi, Inter, sans-serif; }
+.creditCard > strong { display: block; margin: .75rem 0 .2rem; color: #6d28d9; font: 700 2.2rem var(--font-default); }
 .trialCard h2 { margin-top: .75rem; }
 .memberNote { margin-top: 1rem; color: #6b7280; font-size: .75rem; }
 @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } .planCard { grid-row: auto; } }
