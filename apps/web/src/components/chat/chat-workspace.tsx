@@ -1,25 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 
 import type { ChatConversation, ChatMessage, ChatReference, PendingActionView, StreamEvent } from "@/server/chat/types";
 
 import styles from "./chat.module.css";
 
 type Model = Readonly<{ id: string; label: string }>;
-type Properties = Readonly<{ teamId: string; initialConversations: readonly ChatConversation[]; models: readonly Model[] }>;
+type Properties = Readonly<{ teamId: string; initialConversationId?: string | undefined; initialPrompt?: string | undefined; initialConversations: readonly ChatConversation[]; models: readonly Model[] }>;
 type VisibleMessage = ChatMessage | Readonly<{ id: string; role: "assistant" | "user"; content: string; pendingActions: readonly PendingActionView[] }>;
 
 const requestHeaders = (teamId: string, json = false): HeadersInit => ({ "x-team-id": teamId, ...(json ? { "content-type": "application/json" } : {}) });
-const dateLabel = (value: Date | string | null): string => value === null ? "" : new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(value));
-
-export const ChatWorkspace = ({ teamId, initialConversations, models }: Properties) => {
+export const ChatWorkspace = ({ teamId, initialConversationId, initialPrompt, initialConversations, models }: Properties) => {
     const [conversations, setConversations] = useState<readonly ChatConversation[]>(initialConversations);
-    const [activeId, setActiveId] = useState<string | null>(initialConversations[0]?.id ?? null);
+    const [activeId, setActiveId] = useState<string | null>(initialConversations.some(({ id }) => id === initialConversationId) ? initialConversationId ?? null : initialPrompt ? null : initialConversations[0]?.id ?? null);
     const [messages, setMessages] = useState<readonly VisibleMessage[]>([]);
-    const [prompt, setPrompt] = useState("");
+    const [prompt, setPrompt] = useState(initialPrompt?.slice(0, 5000) ?? "");
     const [model, setModel] = useState("auto");
-    const [search, setSearch] = useState("");
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const [mentions, setMentions] = useState<readonly ChatReference[]>([]);
@@ -49,7 +46,7 @@ export const ChatWorkspace = ({ teamId, initialConversations, models }: Properti
         return () => { clearTimeout(timeout); controller.abort(); };
     }, [prompt, teamId]);
 
-    const refreshConversations = async (query = search) => {
+    const refreshConversations = async (query = "") => {
         const response = await fetch(`/chat/conversations?q=${encodeURIComponent(query)}`, { headers: requestHeaders(teamId) });
         if (response.ok) setConversations(((await response.json()) as { conversations: ChatConversation[] }).conversations);
     };
@@ -60,8 +57,8 @@ export const ChatWorkspace = ({ teamId, initialConversations, models }: Properti
         setMentionResults([]);
     };
 
-    const send = async () => {
-        const content = prompt.trim();
+    const send = async (draft?: string) => {
+        const content = (draft ?? prompt).trim();
         if (content === "" || busy) return;
         setBusy(true); setError(""); setPrompt("");
         let conversationId = activeId;
@@ -110,31 +107,18 @@ export const ChatWorkspace = ({ teamId, initialConversations, models }: Properti
         setMessages((items) => items.map((message) => ({ ...message, pendingActions: message.pendingActions.map((item) => item.id === action.id ? updated : item) })));
     };
 
-    const removeConversation = async (conversation: ChatConversation) => {
-        if (!window.confirm(`Delete “${conversation.title}”?`)) return;
-        const response = await fetch(`/chat/conversations/${conversation.id}`, { method: "DELETE", headers: requestHeaders(teamId, true) });
-        if (response.ok) { setConversations((items) => items.filter((item) => item.id !== conversation.id)); if (activeId === conversation.id) setActiveId(null); }
-    };
-
-    const renameConversation = async (conversation: ChatConversation) => {
-        const title = window.prompt("Conversation title", conversation.title)?.trim();
-        if (!title) return;
-        const response = await fetch(`/chat/conversations/${conversation.id}`, { method: "PATCH", headers: requestHeaders(teamId, true), body: JSON.stringify({ title }) });
-        if (response.ok) setConversations((items) => items.map((item) => item.id === conversation.id ? { ...item, title } : item));
-    };
-
     const stop = async () => { if (activeId !== null) await fetch(`/chat/conversations/${activeId}/cancel`, { method: "POST", headers: requestHeaders(teamId, true) }); };
     const feedback = async (messageId: string, rating: "up" | "down") => { await fetch(`/chat/messages/${messageId}/feedback`, { method: "POST", headers: requestHeaders(teamId, true), body: JSON.stringify({ rating }) }); };
+    const initialPromptSent = useRef(false);
+    const sendInitialPrompt = useEffectEvent((draft: string) => { void send(draft); });
+
+    useEffect(() => {
+        if (initialPrompt === undefined || initialPrompt.trim() === "" || initialPromptSent.current) return;
+        initialPromptSent.current = true;
+        sendInitialPrompt(initialPrompt);
+    }, [initialPrompt]);
 
     return <div className={styles.shell}>
-        <aside className={styles.threads}>
-            <div className={styles.threadHeader}><div><span>Workspace intelligence</span><h1>Assistant</h1></div><button type="button" onClick={() => { setActiveId(null); setMessages([]); }} aria-label="New conversation">+</button></div>
-            <label className={styles.search}><span>Search conversations</span><input value={search} onChange={(event) => { setSearch(event.target.value); void refreshConversations(event.target.value); }} placeholder="Search" /></label>
-            <div className={styles.threadList}>{conversations.map((conversation) => <div className={styles.thread} data-active={activeId === conversation.id} key={conversation.id}>
-                <button type="button" onClick={() => setActiveId(conversation.id)}><strong>{conversation.title}</strong><time>{dateLabel(conversation.updatedAt)}</time></button>
-                <div><button type="button" onClick={() => void renameConversation(conversation)} aria-label="Rename">Edit</button><button type="button" onClick={() => void removeConversation(conversation)} aria-label="Delete">×</button></div>
-            </div>)}</div>
-        </aside>
         <section className={styles.chat}>
             <header><div><span>RELATICLE AI</span><strong>{activeId === null ? "A new conversation" : conversations.find((item) => item.id === activeId)?.title}</strong></div><select aria-label="AI model" value={model} onChange={(event) => setModel(event.target.value)}>{models.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></header>
             <div className={styles.messages} ref={scroll}>

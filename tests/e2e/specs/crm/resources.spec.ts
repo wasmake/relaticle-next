@@ -47,7 +47,7 @@ test("keeps CRM navigation usable on mobile @mobile", async ({ page }) => {
     const mobileMenu = page.locator('summary[aria-label="Open navigation"]');
     if (await mobileMenu.isVisible()) await mobileMenu.click();
     await expect(page.getByRole("navigation", { name: "Workspace", exact: true }).filter({ visible: true })).toBeVisible();
-    await page.getByRole("link", { name: "Notes" }).filter({ visible: true }).click();
+    await page.getByRole("link", { name: "Notes", exact: true }).filter({ visible: true }).click();
     await expect(page).toHaveURL(/\/app\/analytical-engines\/notes$/u);
     await expect(page.getByRole("heading", { level: 1, name: "Notes" })).toBeVisible();
 });

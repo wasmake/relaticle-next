@@ -85,22 +85,15 @@ export const CsvControls = ({ resource }: Readonly<{ resource: CrmResource }>) =
     };
 
     return (
-        <section className={styles.csvControls} aria-labelledby="csv-heading">
-            <div>
-                <h2 id="csv-heading">CSV transfer</h2>
-                <p>Export all workspace records, or import a UTF-8 CSV up to 10 MB.</p>
-            </div>
-            <button type="button" onClick={startExport} disabled={busy !== null}>
-                {busy === "export" ? "Preparing..." : "Export CSV"}
-            </button>
-            <label>
-                <span>CSV file</span>
-                <input ref={fileInput} type="file" accept=".csv,text/csv" disabled={busy !== null} />
-            </label>
-            <button type="button" onClick={startImport} disabled={busy !== null}>
-                {busy === "import" ? "Importing..." : "Import CSV"}
-            </button>
-            {message === "" ? null : <p role="status" className={styles.csvStatus}>{message}</p>}
-        </section>
+        <details className={styles.csvControls}>
+            <summary className={styles.secondaryAction}>↕ Import / Export</summary>
+            <section aria-labelledby="csv-heading">
+                <div><h2 id="csv-heading">Import / Export</h2><p>Transfer workspace records with a UTF-8 CSV.</p></div>
+                <button type="button" onClick={startExport} disabled={busy !== null}>{busy === "export" ? "Preparing..." : "Export records"}</button>
+                <label><span>Import CSV</span><input ref={fileInput} type="file" accept=".csv,text/csv" disabled={busy !== null} /></label>
+                <button type="button" onClick={startImport} disabled={busy !== null}>{busy === "import" ? "Importing..." : "Start import"}</button>
+                {message === "" ? null : <p role="status" className={styles.csvStatus}>{message}</p>}
+            </section>
+        </details>
     );
 };

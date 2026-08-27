@@ -41,6 +41,7 @@ type CreateFormProperties = Readonly<{
     companies: readonly CrmOption[];
     people: readonly CrmOption[];
     customFields: readonly CrmCustomField[];
+    customFieldValues?: Readonly<Record<string, unknown>>;
     onSuccess?: () => void;
 }>;
 
@@ -51,6 +52,7 @@ export const CreateForm = ({
     companies,
     people,
     customFields,
+    customFieldValues,
     onSuccess,
 }: CreateFormProperties) => {
     const [state, formAction] = useActionState(action, initialCrmMutationState);
@@ -95,7 +97,7 @@ export const CreateForm = ({
                     </select>
                 </div>
             ) : null}
-            <CustomFieldInputs fields={customFields} />
+            <CustomFieldInputs fields={customFields} {...(customFieldValues === undefined ? {} : { values: customFieldValues })} />
             <div className={styles.formFooter}>
                 <SubmitButton label={`Add ${singular(resource)}`} />
                 {state.message !== "" ? (

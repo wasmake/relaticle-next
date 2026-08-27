@@ -25,7 +25,7 @@ export type CrmMutationState = Readonly<{
     message: string;
 }>;
 
-export type CrmOption = Readonly<{ id: string; label: string }>;
+export type CrmOption = Readonly<{ id: string; label: string; color?: string }>;
 
 export type CrmCustomField = Readonly<{
     id: string;
@@ -33,14 +33,22 @@ export type CrmCustomField = Readonly<{
     name: string;
     type: string;
     required: boolean;
+    visibleInList: boolean;
     options: readonly CrmOption[];
 }>;
 
 export type CrmRecord = Readonly<{
     id: string;
     title: string;
-    detail: string;
+    accountOwner: string | null;
+    assignees: readonly string[];
+    companies: readonly string[];
+    company: CrmOption | null;
+    creator: string;
+    customFields: Readonly<Record<string, unknown>>;
+    people: readonly string[];
     createdAt: string | null;
+    updatedAt: string | null;
 }>;
 
 export type CrmPageData = Readonly<{
@@ -55,6 +63,8 @@ export type CrmPageData = Readonly<{
     companies: readonly CrmOption[];
     people: readonly CrmOption[];
     customFields: readonly CrmCustomField[];
+    search: string;
+    sort: string;
 }>;
 
 const descriptions: Record<CrmResource, string> = {
@@ -68,13 +78,23 @@ const descriptions: Record<CrmResource, string> = {
 const titleFor = (resource: CrmResource): string =>
     resource[0]?.toUpperCase() + resource.slice(1);
 
-const queryUrl = (page: number, includes = ""): URL => {
+const queryUrl = (
+    resource: CrmResource,
+    page: number,
+    includes: string,
+    search: string,
+    sort: string,
+): URL => {
     const url = new URL("http://browser.local/api");
     url.searchParams.set("page", page.toString());
     url.searchParams.set("per_page", "25");
+    url.searchParams.set("sort", sort);
 
     if (includes !== "") {
         url.searchParams.set("include", includes);
+    }
+    if (search !== "") {
+        url.searchParams.set(`filter[${resource === "tasks" || resource === "notes" ? "title" : "name"}]`, search);
     }
 
     return url;
@@ -86,6 +106,21 @@ export const entityTypeForResource = (resource: CrmResource): "company" | "peopl
 const isRequired = (rules: unknown): boolean => {
     if (typeof rules !== "object" || rules === null || Array.isArray(rules)) return false;
     return (rules as Record<string, unknown>).required === true;
+};
+
+const listHiddenByDefault = new Set(["linkedin", "phone_number", "description", "body"]);
+const isVisibleInList = (code: string, settings: unknown): boolean => {
+    if (typeof settings !== "object" || settings === null || Array.isArray(settings)) {
+        return !listHiddenByDefault.has(code);
+    }
+    const values = settings as Readonly<Record<string, unknown>>;
+    return values.visible_in_list !== false && values.list_toggleable_hidden !== true;
+};
+
+const optionColor = (settings: unknown): string | undefined => {
+    if (typeof settings !== "object" || settings === null || Array.isArray(settings)) return undefined;
+    const color = (settings as Readonly<Record<string, unknown>>).color;
+    return typeof color === "string" && color !== "" ? color : undefined;
 };
 
 export const loadCrmCustomFields = async (context: RequestContext, resource: CrmResource): Promise<readonly CrmCustomField[]> => {
@@ -101,7 +136,11 @@ export const loadCrmCustomFields = async (context: RequestContext, resource: Crm
         name: field.name,
         type: field.type,
         required: isRequired(field.validationRules),
-        options: field.options.map((option) => ({ id: option.id, label: option.name ?? "Untitled option" })),
+        visibleInList: isVisibleInList(field.code, field.settings),
+        options: field.options.map((option) => {
+            const color = optionColor(option.settings);
+            return { id: option.id, label: option.name ?? "Untitled option", ...(color === undefined ? {} : { color }) };
+        }),
     }));
 };
 
@@ -113,7 +152,7 @@ const loadCompanyOptions = async (
 ): Promise<readonly CrmOption[]> => {
     const result = await companiesApiDependencies.companies.list(
         context,
-        parseCompanyListQuery(queryUrl(1)),
+        parseCompanyListQuery(queryUrl("companies", 1, "", "", "name")),
     );
 
     return result.companies.map(({ record }) => ({
@@ -127,7 +166,7 @@ const loadPeopleOptions = async (
 ): Promise<readonly CrmOption[]> => {
     const result = await peopleApiDependencies.people.list(
         context,
-        parsePeopleListQuery(queryUrl(1)),
+        parsePeopleListQuery(queryUrl("people", 1, "", "", "name")),
     );
 
     return result.people.map(({ record }) => ({
@@ -140,73 +179,111 @@ export const loadCrmPage = async (
     context: RequestContext,
     resource: CrmResource,
     requestedPage: number,
+    search = "",
+    requestedSort = "-created_at",
 ): Promise<CrmPageData> => {
     const page = Number.isSafeInteger(requestedPage) && requestedPage > 0
         ? requestedPage
         : 1;
     let records: readonly CrmRecord[];
     let total: number;
+    const sort = ["name", "-name", "title", "-title", "created_at", "-created_at", "updated_at", "-updated_at"].includes(requestedSort)
+        ? requestedSort
+        : "-created_at";
 
     if (resource === "companies") {
         const result = await companiesApiDependencies.companies.list(
             context,
-            parseCompanyListQuery(queryUrl(page, "peopleCount,opportunitiesCount")),
+            parseCompanyListQuery(queryUrl(resource, page, "creator,accountOwner", search, sort.replace("title", "name"))),
         );
-        records = result.companies.map(({ counts, record }) => ({
+        records = result.companies.map(({ accountOwner, creator, customFields, record }) => ({
             id: record.id,
             title: record.name,
-            detail: `${counts.peopleCount ?? 0} people · ${counts.opportunitiesCount ?? 0} opportunities`,
+            accountOwner: accountOwner?.name ?? null,
+            assignees: [],
+            companies: [],
+            company: null,
+            creator: creator?.name ?? "System",
+            customFields,
+            people: [],
             createdAt: formatDate(record.createdAt),
+            updatedAt: formatDate(record.updatedAt),
         }));
         total = result.total;
     } else if (resource === "people") {
         const result = await peopleApiDependencies.people.list(
             context,
-            parsePeopleListQuery(queryUrl(page, "company")),
+            parsePeopleListQuery(queryUrl(resource, page, "company,creator", search, sort.replace("title", "name"))),
         );
-        records = result.people.map(({ company, record }) => ({
+        records = result.people.map(({ company, creator, customFields, record }) => ({
             id: record.id,
             title: record.name,
-            detail: company?.record.name ?? "No company",
+            accountOwner: null,
+            assignees: [],
+            companies: [],
+            company: company === null || company === undefined ? null : { id: company.record.id, label: company.record.name },
+            creator: creator?.name ?? "System",
+            customFields,
+            people: [],
             createdAt: formatDate(record.createdAt),
+            updatedAt: formatDate(record.updatedAt),
         }));
         total = result.kind === "page" ? result.total : result.people.length;
     } else if (resource === "opportunities") {
         const result = await opportunitiesApiDependencies.opportunities.list(
             context,
-            parseOpportunityListQuery(queryUrl(page, "company,contact")),
+            parseOpportunityListQuery(queryUrl(resource, page, "creator", search, sort.replace("title", "name"))),
         );
-        records = result.opportunities.map(({ company, contact, record }) => ({
+        records = result.opportunities.map(({ creator, customFields, record }) => ({
             id: record.id,
             title: record.name,
-            detail: [company?.record.name, contact?.record.name]
-                .filter((value) => value !== undefined)
-                .join(" · ") || "Unlinked opportunity",
+            accountOwner: null,
+            assignees: [],
+            companies: [],
+            company: null,
+            creator: creator?.name ?? "System",
+            customFields,
+            people: [],
             createdAt: formatDate(record.createdAt),
+            updatedAt: formatDate(record.updatedAt),
         }));
         total = result.total;
     } else if (resource === "tasks") {
         const result = await tasksApiDependencies.tasks.list(
             context,
-            parseTaskListQuery(queryUrl(page, "companiesCount,peopleCount,opportunitiesCount")),
+            parseTaskListQuery(queryUrl(resource, page, "creator,assignees", search, sort.replace("name", "title"))),
         );
-        records = result.tasks.map(({ counts, record }) => ({
+        records = result.tasks.map(({ assignees, creator, customFields, record }) => ({
             id: record.id,
             title: record.title,
-            detail: `${(counts.companiesCount ?? 0) + (counts.peopleCount ?? 0) + (counts.opportunitiesCount ?? 0)} linked records`,
+            accountOwner: null,
+            assignees: assignees?.map(({ name }) => name) ?? [],
+            companies: [],
+            company: null,
+            creator: creator?.name ?? "System",
+            customFields,
+            people: [],
             createdAt: formatDate(record.createdAt),
+            updatedAt: formatDate(record.updatedAt),
         }));
         total = result.total;
     } else {
         const result = await notesApiDependencies.notes.list(
             context,
-            parseNoteListQuery(queryUrl(page, "companiesCount,peopleCount,opportunitiesCount")),
+            parseNoteListQuery(queryUrl(resource, page, "creator,companies,people", search, sort.replace("name", "title"))),
         );
-        records = result.notes.map(({ counts, record }) => ({
+        records = result.notes.map(({ companies: linkedCompanies, creator, customFields, people: linkedPeople, record }) => ({
             id: record.id,
             title: record.title,
-            detail: `${(counts.companiesCount ?? 0) + (counts.peopleCount ?? 0) + (counts.opportunitiesCount ?? 0)} linked records`,
+            accountOwner: null,
+            assignees: [],
+            companies: linkedCompanies?.map(({ record: company }) => company.name) ?? [],
+            company: null,
+            creator: creator?.name ?? "System",
+            customFields,
+            people: linkedPeople?.map(({ record: person }) => person.name) ?? [],
             createdAt: formatDate(record.createdAt),
+            updatedAt: formatDate(record.updatedAt),
         }));
         total = result.total;
     }
@@ -231,5 +308,7 @@ export const loadCrmPage = async (
         companies,
         people,
         customFields,
+        search,
+        sort,
     };
 };
