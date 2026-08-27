@@ -175,14 +175,14 @@ const Dashboard = async ({ params }: DashboardProperties) => {
             teamName={authentication.team.name}
             active="overview"
         >
-            <section className="mx-auto w-full max-w-3xl py-16 font-sans workspace-mobile:py-10">
+            <section className="mx-auto w-full max-w-3xl py-16 font-ui workspace-mobile:py-10">
                 <div className="text-center">
                     <h1 className="m-0 text-3xl font-semibold leading-9 tracking-tight text-zinc-950 workspace-mobile:text-2xl workspace-mobile:leading-8">
                         {greeting}, {authentication.user.name.split(" ")[0]}.
                     </h1>
                     {recentChat === undefined ? null : (
                         <Link
-                            className={`mx-auto mt-2 flex max-w-full items-center justify-center gap-1.5 text-sm font-normal leading-5 text-workspace-muted no-underline hover:text-workspace-text ${focusRing}`}
+                            className={`mx-auto mt-2 flex max-w-full items-center justify-center gap-1.5 text-ui font-normal text-workspace-muted no-underline hover:text-workspace-text ${focusRing}`}
                             href={`/app/${teamSlug}/chat?conversation=${recentChat.id}`}
                         >
                             <CrmIcon
@@ -200,7 +200,7 @@ const Dashboard = async ({ params }: DashboardProperties) => {
                     action={`/app/${teamSlug}/chat`}
                 >
                     <textarea
-                        className="block min-h-16 w-full resize-none border-0 bg-transparent px-4 pb-2 pt-4 text-sm font-normal leading-5 text-workspace-text outline-none placeholder:text-workspace-subtle"
+                        className="block min-h-16 w-full resize-none border-0 bg-transparent px-4 pb-2 pt-4 text-ui font-normal text-workspace-text outline-none placeholder:text-workspace-subtle"
                         aria-label="Ask anything"
                         name="message"
                         placeholder="Ask anything..."
@@ -208,7 +208,7 @@ const Dashboard = async ({ params }: DashboardProperties) => {
                     />
                     <footer className="flex h-10 items-center justify-end gap-2 px-3 pb-2">
                         <select
-                            className={`cursor-pointer border-0 bg-transparent text-xs font-medium leading-4 text-workspace-muted ${focusRing}`}
+                            className={`cursor-pointer border-0 bg-transparent text-caption font-medium text-workspace-muted ${focusRing}`}
                             aria-label="AI model"
                             name="model"
                             defaultValue="auto"
@@ -232,7 +232,7 @@ const Dashboard = async ({ params }: DashboardProperties) => {
                         "Pipeline summary",
                     ].map((label) => (
                         <Link
-                            className={`inline-flex h-8 items-center rounded-full border border-workspace-border bg-workspace-surface px-3 text-xs font-medium leading-4 text-workspace-muted no-underline transition-colors hover:border-violet-300 hover:bg-workspace-primary-soft hover:text-workspace-primary-text ${focusRing}`}
+                            className={`inline-flex h-8 items-center rounded-full border border-workspace-border bg-workspace-surface px-3 text-caption font-medium text-workspace-muted no-underline transition-colors hover:border-violet-300 hover:bg-workspace-primary-soft hover:text-workspace-primary-text ${focusRing}`}
                             key={label}
                             href={`/app/${teamSlug}/chat?message=${encodeURIComponent(label)}`}
                         >
@@ -242,7 +242,7 @@ const Dashboard = async ({ params }: DashboardProperties) => {
                 </div>
                 <section className="mt-12">
                     <header className="mb-2 flex h-8 items-center justify-between">
-                        <h2 className="m-0 flex items-baseline gap-2 text-xs font-semibold uppercase leading-4 tracking-wider text-workspace-muted">
+                        <h2 className="m-0 flex items-baseline gap-2 text-caption font-semibold uppercase tracking-wider text-workspace-muted">
                             <span>Tasks</span>
                             <small className="text-workspace-subtle">
                                 {myTasks.length}
@@ -250,7 +250,7 @@ const Dashboard = async ({ params }: DashboardProperties) => {
                         </h2>
                         <div className="flex h-8 items-center gap-2">
                             <Link
-                                className={`inline-flex h-8 items-center px-2 text-xs font-medium leading-4 text-workspace-muted no-underline hover:text-workspace-text ${focusRing}`}
+                                className={`inline-flex h-8 items-center px-2 text-caption font-medium text-workspace-muted no-underline hover:text-workspace-text ${focusRing}`}
                                 href={`/app/${teamSlug}/tasks`}
                             >
                                 View all
@@ -268,14 +268,14 @@ const Dashboard = async ({ params }: DashboardProperties) => {
                     </header>
                     {myTasks.length === 0 ? (
                         <div className="grid justify-items-center rounded-control border border-dashed border-workspace-border bg-workspace-surface px-6 py-10 text-center">
-                            <strong className="text-sm font-semibold leading-5 text-workspace-text">
+                            <strong className="text-ui font-semibold text-workspace-text">
                                 No tasks assigned to you
                             </strong>
-                            <span className="mt-1 text-xs font-normal leading-4 text-workspace-muted">
+                            <span className="mt-1 text-caption font-normal text-workspace-muted">
                                 Tasks assigned to you will appear here.
                             </span>
                             <Link
-                                className={`mt-4 rounded-control bg-workspace-primary px-3 py-2 text-xs font-semibold leading-4 text-white no-underline hover:bg-workspace-primary-text ${focusRing}`}
+                                className={`mt-4 rounded-control bg-workspace-primary px-3 py-2 text-caption font-semibold text-white no-underline hover:bg-workspace-primary-text ${focusRing}`}
                                 href={`/app/${teamSlug}/tasks`}
                             >
                                 New task
@@ -293,14 +293,14 @@ const Dashboard = async ({ params }: DashboardProperties) => {
                                         href={`/app/${teamSlug}/tasks/${task.id}`}
                                     >
                                         <span className="size-4 shrink-0 rounded-full border border-gray-300" />
-                                        <strong className="min-w-0 flex-1 truncate text-sm font-normal leading-5">
+                                        <strong className="min-w-0 flex-1 truncate text-ui font-medium">
                                             {task.title}
                                         </strong>
                                         {task.dueAt === null ? (
                                             <span className="w-28 shrink-0 workspace-mobile:w-24" />
                                         ) : (
                                             <time
-                                                className={`w-28 shrink-0 whitespace-nowrap text-right text-xs font-normal leading-4 tabular-nums workspace-mobile:w-24 ${task.dueAt < today ? "text-red-600" : "text-workspace-muted"}`}
+                                                className={`w-28 shrink-0 whitespace-nowrap text-right text-caption font-normal tabular-nums workspace-mobile:w-24 ${task.dueAt < today ? "text-red-600" : "text-workspace-muted"}`}
                                                 dateTime={task.dueAt.toISOString()}
                                             >
                                                 {date(task.dueAt)}

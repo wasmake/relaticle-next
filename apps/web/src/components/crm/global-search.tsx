@@ -65,12 +65,12 @@ export const GlobalSearch = ({ teamSlug }: Readonly<{ teamSlug: string }>) => {
         <>
             <button
                 type="button"
-                className={`flex h-9 min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-control border border-workspace-border bg-nav-active px-3 text-xs font-normal leading-4 text-workspace-muted shadow-control hover:bg-nav-hover hover:text-workspace-text ${focusRing} sidebar-collapsed:hidden`}
+                className={`flex h-9 min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-control border border-workspace-border bg-nav-active px-3 text-caption font-medium text-workspace-muted shadow-control hover:bg-nav-hover hover:text-workspace-text ${focusRing} sidebar-collapsed:hidden`}
                 onClick={() => setOpen(true)}
             >
                 <CrmIcon className="size-4 shrink-0" name="search" />
                 <span>Search</span>
-                <kbd className="ml-auto whitespace-nowrap rounded-md border border-workspace-border bg-workspace-surface px-1.5 py-0.5 font-sans text-pico font-medium leading-none">
+                <kbd className="ml-auto whitespace-nowrap rounded-md border border-workspace-border bg-workspace-surface px-1.5 py-0.5 font-ui text-pico font-medium leading-none">
                     Ctrl K
                 </kbd>
             </button>
@@ -94,7 +94,7 @@ export const GlobalSearch = ({ teamSlug }: Readonly<{ teamSlug: string }>) => {
                                 name="search"
                             />
                             <input
-                                className="w-full border-0 bg-transparent p-4 text-sm font-normal leading-5 text-workspace-text outline-none placeholder:text-workspace-subtle"
+                                className="w-full border-0 bg-transparent p-4 text-ui font-normal text-workspace-text outline-none placeholder:text-workspace-subtle"
                                 autoFocus
                                 aria-label="Search companies, people, opportunities, tasks, and notes"
                                 value={query}
@@ -129,11 +129,11 @@ export const GlobalSearch = ({ teamSlug }: Readonly<{ teamSlug: string }>) => {
                         </div>
                         <div className="max-h-96 overflow-y-auto">
                             {query.length < 2 ? (
-                                <p className="m-0 p-5 text-sm leading-5 text-workspace-muted">
+                                <p className="m-0 p-5 text-ui text-workspace-muted">
                                     Type at least two characters.
                                 </p>
                             ) : results.length === 0 ? (
-                                <p className="m-0 p-5 text-sm leading-5 text-workspace-muted">
+                                <p className="m-0 p-5 text-ui text-workspace-muted">
                                     No matching records.
                                 </p>
                             ) : (
@@ -147,14 +147,14 @@ export const GlobalSearch = ({ teamSlug }: Readonly<{ teamSlug: string }>) => {
                                         onClick={close}
                                     >
                                         <span className="grid min-w-0 gap-1">
-                                            <strong className="truncate text-sm font-semibold leading-5">
+                                            <strong className="truncate text-ui font-semibold">
                                                 {result.title}
                                             </strong>
-                                            <small className="truncate text-xs font-normal leading-4 text-workspace-muted">
+                                            <small className="truncate text-caption font-normal text-workspace-muted">
                                                 {result.context}
                                             </small>
                                         </span>
-                                        <em className="shrink-0 text-xs font-normal not-italic leading-4 text-workspace-muted capitalize">
+                                        <em className="shrink-0 text-caption font-normal not-italic text-workspace-muted capitalize">
                                             {result.resource}
                                         </em>
                                     </Link>

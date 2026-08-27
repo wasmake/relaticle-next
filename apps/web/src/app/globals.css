@@ -32,10 +32,15 @@
     --text-pico--line-height: 0.875rem;
     --text-micro: 0.6875rem;
     --text-micro--line-height: 0.9375rem;
+    --text-caption: 0.8125rem;
+    --text-caption--line-height: 1.125rem;
+    --text-ui: 0.9375rem;
+    --text-ui--line-height: 1.25rem;
 }
 
 @theme inline {
     --font-sans: var(--font-default);
+    --font-ui: var(--font-display);
 }
 
 @font-face {

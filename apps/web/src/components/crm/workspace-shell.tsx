@@ -29,7 +29,7 @@ type WorkspaceShellProperties = Readonly<{
 
 const focusRing =
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-workspace-primary focus-visible:ring-offset-2";
-const navItem = `group flex h-nav-item min-w-0 items-center gap-3 rounded-control px-3 text-sm font-normal leading-5 no-underline transition-colors hover:bg-nav-hover hover:text-workspace-text ${focusRing} sidebar-collapsed:justify-center sidebar-collapsed:px-0`;
+const navItem = `group flex h-nav-item min-w-0 items-center gap-3 rounded-control px-3 text-ui font-medium no-underline transition-colors hover:bg-nav-hover hover:text-workspace-text ${focusRing} sidebar-collapsed:justify-center sidebar-collapsed:px-0`;
 const activeNavItem = "bg-nav-active font-semibold text-workspace-primary-text";
 const iconClass =
     "size-5 shrink-0 text-workspace-subtle transition-colors group-aria-[current=page]:text-workspace-primary group-hover:text-workspace-muted";
@@ -112,7 +112,7 @@ export const WorkspaceShell = async ({
     ];
 
     return (
-        <main className="workspace-shell flex min-h-dvh bg-workspace-canvas font-sans text-workspace-text workspace-mobile:block">
+        <main className="workspace-shell flex min-h-dvh bg-workspace-canvas font-ui text-workspace-text workspace-mobile:block">
             <input
                 className="peer/sidebar sr-only"
                 id="workspace-sidebar-toggle"
@@ -150,7 +150,7 @@ export const WorkspaceShell = async ({
                                 ))}
                             </div>
                             <div className="mt-6 border-t border-workspace-border pt-4">
-                                <div className="flex h-8 items-center px-3 text-xs font-semibold uppercase leading-4 tracking-wider text-workspace-muted">
+                                <div className="flex h-8 items-center px-3 text-caption font-semibold uppercase tracking-wider text-workspace-muted">
                                     Chats
                                 </div>
                                 <div className="grid gap-1">
@@ -180,7 +180,7 @@ export const WorkspaceShell = async ({
                         </nav>
                     </div>
                 </details>
-                <strong className="min-w-0 flex-1 truncate text-sm font-semibold leading-5">
+                <strong className="min-w-0 flex-1 truncate text-ui font-semibold">
                     {teamName}
                 </strong>
                 <Link
@@ -200,7 +200,7 @@ export const WorkspaceShell = async ({
                         <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-zinc-950 text-pico font-bold leading-none text-white">
                             {initials(teamName)}
                         </span>
-                        <strong className="min-w-0 flex-1 truncate text-sm font-semibold leading-5 sidebar-collapsed:hidden">
+                        <strong className="min-w-0 flex-1 truncate text-ui font-semibold sidebar-collapsed:hidden">
                             {teamName}
                         </strong>
                         <CrmIcon
@@ -214,7 +214,7 @@ export const WorkspaceShell = async ({
                     >
                         {workspaceMenuItems.map(({ label, href }) => (
                             <Link
-                                className={`rounded-lg px-3 py-2 text-xs font-normal leading-4 text-workspace-muted no-underline hover:bg-workspace-primary-soft hover:text-workspace-primary-text ${focusRing}`}
+                                className={`rounded-lg px-3 py-2 text-caption font-medium text-workspace-muted no-underline hover:bg-workspace-primary-soft hover:text-workspace-primary-text ${focusRing}`}
                                 href={href}
                                 key={label}
                             >
@@ -258,7 +258,7 @@ export const WorkspaceShell = async ({
                     </div>
 
                     <section className="mt-6">
-                        <header className="flex h-8 items-center px-3 text-xs font-semibold uppercase leading-4 tracking-wider text-workspace-muted sidebar-collapsed:justify-center sidebar-collapsed:px-0">
+                        <header className="flex h-8 items-center px-3 text-caption font-semibold uppercase tracking-wider text-workspace-muted sidebar-collapsed:justify-center sidebar-collapsed:px-0">
                             <span className="sidebar-collapsed:hidden">
                                 Chats
                             </span>
@@ -269,7 +269,7 @@ export const WorkspaceShell = async ({
                         </header>
                         <div className="grid gap-0.5">
                             {visibleConversations.length === 0 ? (
-                                <p className="m-0 px-3 py-2 text-xs leading-5 text-workspace-muted sidebar-collapsed:hidden">
+                                <p className="m-0 px-3 py-2 text-caption text-workspace-muted sidebar-collapsed:hidden">
                                     No chats yet. Start one from Home.
                                 </p>
                             ) : (
@@ -315,7 +315,7 @@ export const WorkspaceShell = async ({
                     <div className="flex items-center gap-4">
                         <Link
                             href={`/app/${teamSlug}/chat`}
-                            className={`inline-flex h-9 items-center gap-2 rounded-control border border-workspace-border bg-workspace-surface px-3 text-xs font-semibold leading-4 text-zinc-900 no-underline shadow-control hover:bg-nav-hover ${focusRing}`}
+                            className={`inline-flex h-9 items-center gap-2 rounded-control border border-workspace-border bg-workspace-surface px-3 text-caption font-semibold text-zinc-900 no-underline shadow-control hover:bg-nav-hover ${focusRing}`}
                         >
                             <CrmIcon
                                 className="size-4 text-workspace-subtle"
@@ -334,33 +334,33 @@ export const WorkspaceShell = async ({
                                 className="absolute right-0 top-full z-50 mt-2 grid w-52 rounded-control border border-workspace-border bg-workspace-surface p-2 shadow-popover"
                                 aria-label="Account menu"
                             >
-                                <strong className="truncate px-3 pt-1 text-xs font-semibold leading-4">
+                                <strong className="truncate px-3 pt-1 text-caption font-semibold">
                                     {authentication.user.name}
                                 </strong>
                                 <small className="mb-2 truncate px-3 pb-1 text-micro font-normal leading-4 text-workspace-muted">
                                     {authentication.user.email}
                                 </small>
                                 <Link
-                                    className={`rounded-lg px-3 py-2 text-xs leading-4 text-workspace-muted no-underline hover:bg-workspace-primary-soft hover:text-workspace-primary-text ${focusRing}`}
+                                    className={`rounded-lg px-3 py-2 text-caption text-workspace-muted no-underline hover:bg-workspace-primary-soft hover:text-workspace-primary-text ${focusRing}`}
                                     href="/app/settings/profile"
                                 >
                                     Profile
                                 </Link>
                                 <Link
-                                    className={`rounded-lg px-3 py-2 text-xs leading-4 text-workspace-muted no-underline hover:bg-workspace-primary-soft hover:text-workspace-primary-text ${focusRing}`}
+                                    className={`rounded-lg px-3 py-2 text-caption text-workspace-muted no-underline hover:bg-workspace-primary-soft hover:text-workspace-primary-text ${focusRing}`}
                                     href="/app/settings/security"
                                 >
                                     Security
                                 </Link>
                                 <Link
-                                    className={`rounded-lg px-3 py-2 text-xs leading-4 text-workspace-muted no-underline hover:bg-workspace-primary-soft hover:text-workspace-primary-text ${focusRing}`}
+                                    className={`rounded-lg px-3 py-2 text-caption text-workspace-muted no-underline hover:bg-workspace-primary-soft hover:text-workspace-primary-text ${focusRing}`}
                                     href="/app/settings/notifications"
                                 >
                                     Notifications
                                 </Link>
                                 <form method="post" action="/auth/logout">
                                     <button
-                                        className={`w-full cursor-pointer rounded-lg border-0 bg-transparent px-3 py-2 text-left text-xs leading-4 text-workspace-muted hover:bg-workspace-primary-soft hover:text-workspace-primary-text ${focusRing}`}
+                                        className={`w-full cursor-pointer rounded-lg border-0 bg-transparent px-3 py-2 text-left text-caption text-workspace-muted hover:bg-workspace-primary-soft hover:text-workspace-primary-text ${focusRing}`}
                                         type="submit"
                                     >
                                         Sign out
