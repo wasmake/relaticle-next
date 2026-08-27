@@ -11,10 +11,12 @@ test.beforeEach(async ({ page }) => {
 test("opens, edits, trashes, and restores a record with its timeline", async ({ page }) => {
     const name = `Advanced company ${Date.now()}`;
     await page.goto("/app/analytical-engines/companies");
+    await page.getByRole("button", { name: "New company" }).click();
     await page.getByLabel("Name", { exact: true }).fill(name);
     await page.getByRole("button", { name: "Add company" }).click();
     await page.getByRole("link", { name }).click();
     await expect(page.getByRole("heading", { level: 2, name: "Activity" })).toBeVisible();
+    await page.getByRole("button", { name: "Edit" }).click();
     await page.getByLabel("Name", { exact: true }).fill(`${name} edited`);
     await page.getByRole("button", { name: "Save changes" }).click();
     await expect(page.getByRole("status")).toHaveText("Changes saved.");
@@ -22,7 +24,7 @@ test("opens, edits, trashes, and restores a record with its timeline", async ({ 
     await page.getByRole("button", { name: `Delete ${name} edited` }).click();
     await page.getByRole("link", { name: "View trash" }).click();
     await expect(page.getByText(`${name} edited`, { exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "Restore" }).click();
+    await page.getByRole("listitem").filter({ hasText: `${name} edited` }).getByRole("button", { name: "Restore" }).click();
     await expect(page.getByRole("status")).toHaveText("Record restored.");
 });
 

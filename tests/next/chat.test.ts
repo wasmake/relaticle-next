@@ -75,7 +75,7 @@ describe("chat service", () => {
         const repository = new MemoryRepository();
         const tools = new FakeTools();
         const service = new ChatService(repository, new ModelRegistry([descriptor], { compatible: () => ({ async *stream() {} }) }), tools, new ChatCancellationRegistry());
-        const proposal = await repository.createProposal({ id: "action-1", identity, conversationId: "conversation-1", messageId: null, operation: "create", entityType: "company", actionData: { fields: { name: "Acme" } }, displayData: { label: "Acme" }, expiresAt: new Date("2026-08-20T00:00:00.000Z") });
+        const proposal = await repository.createProposal({ id: "action-1", identity, conversationId: "conversation-1", messageId: null, operation: "create", entityType: "company", actionData: { fields: { name: "Acme" } }, displayData: { label: "Acme" }, expiresAt: new Date(Date.now() + 60_000) });
 
         const resolved = await service.resolveAction(identity, proposal.id, "approve");
         expect(tools.approved).toEqual([proposal.id]);

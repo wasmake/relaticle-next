@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { randomUUID } from "node:crypto";
 
+import { WorkspaceShell } from "@/components/crm/workspace-shell";
 import { requireBrowserTeam } from "@/server/auth/browser/context";
 import { billingIsConfigured } from "@/server/billing/configuration";
 import { DrizzleBillingRepository } from "@/server/billing/commerce-repository";
@@ -29,8 +29,7 @@ const BillingPage = async ({ params, searchParams }: BillingPageProperties) => {
     const yearlyKey = randomUUID();
     const creditKey = randomUUID();
 
-    return <main className={styles.page}>
-        <aside className={styles.sidebar}><Link className={styles.wordmark} href={`/app/${teamSlug}`}>Relaticle</Link><p>{workspace.name}</p><nav><Link href={`/app/${teamSlug}`}>Overview</Link><Link aria-current="page" href={`/app/${teamSlug}/billing`}>Billing</Link><Link href={`/app/${teamSlug}/settings/team`}>Team settings</Link><Link href="/pricing">Pricing</Link></nav></aside>
+    return <WorkspaceShell teamSlug={teamSlug} teamName={authentication.team.name} active="settings">
         <section className={styles.content}>
             <header><p className={styles.eyebrow}>Workspace billing</p><h1>Plan and credits</h1><p>Keep your workspace active and add AI capacity when the team needs it.</p></header>
             {state.checkout === "success" ? <p className={styles.notice} role="status">Payment confirmed. Your workspace is up to date.</p> : null}
@@ -55,7 +54,7 @@ const BillingPage = async ({ params, searchParams }: BillingPageProperties) => {
             </div>
             {!canManage ? <p className={styles.memberNote}>You can view billing. A workspace owner or administrator must make changes.</p> : null}
         </section>
-    </main>;
+    </WorkspaceShell>;
 };
 
 export default BillingPage;

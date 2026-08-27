@@ -30,9 +30,10 @@ export const CrmBoard = ({ action, initial, teamSlug }: Readonly<{ action: MoveA
             else setMessage("Board saved.");
         });
     };
+    const title = initial.resource === "tasks" ? "Tasks" : "Opportunities";
     return <>
-        <header className={styles.header}><div><p className={styles.eyebrow}>Drag and drop board</p><h1>{initial.resource === "tasks" ? "Task board" : "Opportunity pipeline"}</h1><p><Link href={`/app/${teamSlug}/${initial.resource}`}>List</Link> · Board</p></div></header>
+        <header className={styles.header}><div><h1>{title}</h1><span className={styles.viewSwitcher}><Link href={`/app/${teamSlug}/${initial.resource}`}>List</Link><strong>Board</strong></span></div><div className={styles.headerActions}><button className={styles.iconAction} type="button" aria-label="Filter board">⌁</button><div className={styles.tableSearch}>⌕ <span>Search</span></div></div></header>
         <p className={styles.boardStatus} role="status">{pending ? "Saving…" : message}</p>
-        <div className={styles.board} aria-label={`${initial.resource} board`}>{data.columns.map((column) => <section key={column.id} className={styles.boardColumn} onDragOver={(event) => event.preventDefault()} onDrop={(event) => move(event.dataTransfer.getData("text/plain"), column.id)}><header><h2>{column.label}</h2><span>{column.cards.length}</span></header><div>{column.cards.map((card) => <article key={card.id} draggable onDragStart={(event) => event.dataTransfer.setData("text/plain", card.id)}><Link href={`/app/${teamSlug}/${initial.resource}/${card.id}`}><strong>{card.title}</strong><span>{card.detail}</span></Link></article>)}</div></section>)}</div>
+        <div className={styles.board} aria-label={`${initial.resource} board`}>{data.columns.map((column) => <section key={column.id} className={styles.boardColumn} onDragOver={(event) => event.preventDefault()} onDrop={(event) => move(event.dataTransfer.getData("text/plain"), column.id)}><header><h2>{column.label} <span>{column.cards.length}</span></h2><span>＋</span></header><div>{column.cards.map((card) => <article key={card.id} draggable onDragStart={(event) => event.dataTransfer.setData("text/plain", card.id)}><Link href={`/app/${teamSlug}/${initial.resource}/${card.id}`}><strong>{card.title}</strong><span>{card.detail}</span></Link></article>)}</div></section>)}</div>
     </>;
 };

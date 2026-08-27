@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 
 import type { CrmCustomField, CrmMutationState, CrmOption, CrmResource } from "@/app/app/[teamSlug]/_crm-data";
@@ -17,8 +17,9 @@ const SaveButton = () => {
     return <button type="submit" disabled={pending}>{pending ? "Saving…" : "Save changes"}</button>;
 };
 
-export const RecordEditForm = ({ action, companies, customFields, detail, people, resource }: Readonly<{ action: CrmMutationAction; companies: readonly CrmOption[]; customFields: readonly CrmCustomField[]; detail: CrmRecordDetail; people: readonly CrmOption[]; resource: CrmResource }>) => {
+export const RecordEditForm = ({ action, companies, customFields, detail, onSuccess, people, resource }: Readonly<{ action: CrmMutationAction; companies: readonly CrmOption[]; customFields: readonly CrmCustomField[]; detail: CrmRecordDetail; onSuccess?: () => void; people: readonly CrmOption[]; resource: CrmResource }>) => {
     const [state, formAction] = useActionState(action, initial);
+    useEffect(() => { if (state.status === "success") onSuccess?.(); }, [onSuccess, state.status]);
     return <form action={formAction} className={styles.createForm}>
         <input type="hidden" name="intent" value="update" /><input type="hidden" name="id" value={detail.id} />
         <div className={styles.field}><label htmlFor="record-value">{resource === "tasks" || resource === "notes" ? "Title" : "Name"}</label><input id="record-value" name="value" required maxLength={255} defaultValue={detail.title} /></div>

@@ -1,6 +1,7 @@
 import { count, eq } from "drizzle-orm";
 import Link from "next/link";
 
+import { WorkspaceShell } from "@/components/crm/workspace-shell";
 import { requireBrowserTeam } from "@/server/auth/browser/context";
 import { getDatabase } from "@/server/db/client";
 import { companies, notes, opportunities, people, tasks } from "@/server/db/schema";
@@ -25,37 +26,28 @@ const Dashboard = async ({ params }: DashboardProperties) => {
         }),
     );
     const resources = ["Companies", "People", "Opportunities", "Tasks", "Notes"];
+    const hour = new Date().getUTCHours();
+    const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
     return (
-        <main className="workspace-page">
-            <aside className="workspace-sidebar">
-                <Link href={`/app/${teamSlug}`} className="wordmark">Relaticle</Link>
-                <p className="workspace-name">{authentication.team.name}</p>
-                <nav aria-label="Workspace">
-                    <Link href={`/app/${teamSlug}`}>Overview</Link>
-                    {resources.map((resource) => (
-                        <Link key={resource} href={`/app/${teamSlug}/${resource.toLowerCase()}`}>{resource}</Link>
-                    ))}
-                    <Link href={`/app/${teamSlug}/settings/team`}>Team settings</Link>
-                    <Link href={`/app/${teamSlug}/billing`}>Billing</Link>
-                    <Link href="/app/settings/profile">Account settings</Link>
-                    <Link href="/app/new">Switch workspace</Link>
-                </nav>
-            </aside>
-            <section className="workspace-content">
-                <p className="eyebrow">Workspace overview</p>
-                <h1>Good to see you, {authentication.user.name.split(" ")[0]}.</h1>
-                <p className="lede">A live view of the records your team is moving forward.</p>
-                <div className="metric-grid">
-                    {resources.map((resource, index) => (
-                        <Link className="metric" key={resource} href={`/app/${teamSlug}/${resource.toLowerCase()}`}>
-                            <span>{resource}</span>
-                            <strong>{totals[index]}</strong>
-                        </Link>
-                    ))}
+        <WorkspaceShell teamSlug={teamSlug} teamName={authentication.team.name} active="overview">
+            <section className="crm-dashboard">
+                <h1>{greeting}, {authentication.user.name.split(" ")[0]}.</h1>
+                <form className="dashboard-composer" action={`/app/${teamSlug}/chat`}>
+                    <textarea aria-label="Ask anything" name="message" placeholder="Ask anything..." />
+                    <footer><span>Auto</span><button type="submit" aria-label="Send message">↑</button></footer>
+                </form>
+                <div className="dashboard-prompts">
+                    <Link href={`/app/${teamSlug}/chat`}>Summarize my workspace</Link>
+                    <Link href={`/app/${teamSlug}/chat`}>What should I follow up on?</Link>
+                    <Link href={`/app/${teamSlug}/chat`}>Show pipeline insights</Link>
                 </div>
+                <section className="dashboard-tasks">
+                    <header><div><h2>Workspace records</h2><p>Your team&apos;s current CRM activity.</p></div><Link href={`/app/${teamSlug}/tasks`}>View tasks</Link></header>
+                    <div>{resources.map((resource, index) => <Link key={resource} href={`/app/${teamSlug}/${resource.toLowerCase()}`}><span>{resource}</span><strong>{totals[index]}</strong></Link>)}</div>
+                </section>
             </section>
-        </main>
+        </WorkspaceShell>
     );
 };
 

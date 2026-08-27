@@ -9,6 +9,6 @@ test("signs in with a Node-owned database session", async ({ page }) => {
     await page.getByRole("button", { name: "Sign in to workspace" }).click();
 
     await expect(page).toHaveURL(/\/app\/analytical-engines$/u);
-    await expect(page.getByRole("heading", { name: "Good to see you, Ada." })).toBeVisible();
-    await expect(page.getByText("Analytical Engines", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Good (morning|afternoon|evening), Ada\./u })).toBeVisible();
+    await expect(page.getByText("Analytical Engines", { exact: true }).filter({ visible: true })).toBeVisible();
 });

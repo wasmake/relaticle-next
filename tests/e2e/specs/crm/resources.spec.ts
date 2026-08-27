@@ -28,22 +28,26 @@ for (const resource of resources) {
         await page.goto(`/app/analytical-engines/${resource.path}`);
         await expect(page.getByRole("heading", { level: 1, name: resource.heading })).toBeVisible();
 
+        await page.getByRole("button", { name: `New ${resource.noun}` }).click();
         await page.getByLabel(resource.field, { exact: true }).fill(recordName);
         await page.getByRole("button", { name: `Add ${resource.noun}` }).click();
 
-        await expect(page.getByText(recordName, { exact: true })).toBeVisible();
+        const recordLink = page.getByRole("link", { name: recordName });
+        await expect(recordLink).toBeVisible();
         await expect(page.getByRole("status")).toHaveText("Record created.");
 
         await page.getByRole("button", { name: `Delete ${recordName}` }).click();
-        await expect(page.getByText(recordName, { exact: true })).toHaveCount(0);
+        await expect(recordLink).toHaveCount(0);
     });
 }
 
 test("keeps CRM navigation usable on mobile @mobile", async ({ page }) => {
     await page.goto("/app/analytical-engines/companies");
 
-    await expect(page.getByRole("navigation", { name: "Workspace" })).toBeVisible();
-    await page.getByRole("link", { name: "Notes" }).click();
+    const mobileMenu = page.locator('summary[aria-label="Open navigation"]');
+    if (await mobileMenu.isVisible()) await mobileMenu.click();
+    await expect(page.getByRole("navigation", { name: "Workspace", exact: true }).filter({ visible: true })).toBeVisible();
+    await page.getByRole("link", { name: "Notes" }).filter({ visible: true }).click();
     await expect(page).toHaveURL(/\/app\/analytical-engines\/notes$/u);
     await expect(page.getByRole("heading", { level: 1, name: "Notes" })).toBeVisible();
 });

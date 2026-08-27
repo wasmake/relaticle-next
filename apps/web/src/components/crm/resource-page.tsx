@@ -2,8 +2,9 @@ import Link from "next/link";
 
 import type { CrmPageData } from "@/app/app/[teamSlug]/_crm-data";
 
-import { CsvControls } from "./csv-controls";
-import { CreateForm, type CrmMutationAction, DeleteForm } from "./mutation-form";
+import { CreateRecordDrawer } from "./create-record-drawer";
+import { CrmIcon } from "./icon";
+import { type CrmMutationAction, DeleteForm } from "./mutation-form";
 import styles from "./crm.module.css";
 
 const singular = (resource: CrmPageData["resource"]): string =>
@@ -42,60 +43,28 @@ export const ResourcePage = ({
         <>
             <header className={styles.header}>
                 <div>
-                    <p className={styles.eyebrow}>Workspace records</p>
                     <h1>{data.title}</h1>
-                    {data.resource === "opportunities" || data.resource === "tasks" ? <p><strong>List</strong> · <Link href={`${basePath}/board`}>Board</Link></p> : null}
-                    <p>{data.description}</p>
+                    {data.resource === "opportunities" || data.resource === "tasks" ? <span className={styles.viewSwitcher}><strong>List</strong><Link href={`${basePath}/board`}>Board</Link></span> : null}
                 </div>
-                <span className={styles.total}>{data.total}</span>
+                <div className={styles.headerActions}>
+                    <Link className={styles.secondaryAction} href={`${basePath}?import=1`}>↕ Import / Export</Link>
+                    <CreateRecordDrawer action={action} data={data} />
+                </div>
             </header>
-            <CsvControls resource={data.resource} />
-            <section className={styles.panel} aria-labelledby="create-heading">
-                <h2 id="create-heading">Add a {singular(data.resource)}</h2>
-                <CreateForm
-                    action={action}
-                    resource={data.resource}
-                    fieldLabel={data.fieldLabel}
-                    companies={data.companies}
-                    people={data.people}
-                    customFields={data.customFields}
-                />
-            </section>
-            <section className={styles.listSection} aria-labelledby="records-heading">
-                <div className={styles.listHeader}>
-                    <h2 id="records-heading">All {data.title.toLowerCase()}</h2>
-                    <p>{first}–{last} of {data.total}</p>
-                </div>
+            <section className={styles.tablePanel} aria-label={`${data.title} records`}>
+                <div className={styles.tableToolbar}><div className={styles.tableSearch}><CrmIcon name="search" /><span>Search</span></div><button className={styles.iconAction} type="button" aria-label="Filter"><CrmIcon name="filter" /></button></div>
                 {data.records.length === 0 ? (
                     <div className={styles.empty}>
                         <strong>No {data.title.toLowerCase()} yet</strong>
-                        <p>Add the first one above to start building your team&apos;s shared context.</p>
+                        <p>Create the first record to get started.</p>
                     </div>
                 ) : (
-                    <ul className={styles.recordList}>
-                        {data.records.map((record) => (
-                            <li key={record.id}>
-                                <div className={styles.recordMark} aria-hidden="true">
-                                    {record.title.slice(0, 1).toUpperCase()}
-                                </div>
-                                <Link className={styles.recordBody} href={`${basePath}/${record.id}`}>
-                                    <strong>{record.title}</strong>
-                                    <span>{record.detail}</span>
-                                </Link>
-                                <time dateTime={record.createdAt ?? undefined}>{dateLabel(record.createdAt)}</time>
-                                <DeleteForm action={action} id={record.id} title={record.title} />
-                            </li>
-                        ))}
-                    </ul>
+                    <table className={styles.recordTable}>
+                        <thead><tr><th className={styles.selectionCell}><input type="checkbox" aria-label="Select all records" /></th><th>{singular(data.resource)}</th><th>Related records</th><th>Created by</th><th>Creation date</th><th>Last update</th><th aria-label="Actions" /></tr></thead>
+                        <tbody>{data.records.map((record) => <tr key={record.id}><td className={styles.selectionCell}><input type="checkbox" aria-label={`Select ${record.title}`} /></td><td><Link className={styles.recordTitle} href={`${basePath}/${record.id}`}><span>{record.title.slice(0, 2).toUpperCase()}</span>{record.title}</Link></td><td className={styles.mutedCell}>{record.detail}</td><td>System</td><td>{dateLabel(record.createdAt)}</td><td className={styles.mutedCell}>{dateLabel(record.createdAt)}</td><td className={styles.rowActions}><DeleteForm action={action} id={record.id} title={record.title} /></td></tr>)}</tbody>
+                    </table>
                 )}
-                {pageCount > 1 ? (
-                    <nav className={styles.pagination} aria-label={`${data.title} pages`}>
-                        {data.page > 1 ? <Link href={`${basePath}?page=${data.page - 1}`}>Previous</Link> : <span>Previous</span>}
-                        <strong>Page {data.page} of {pageCount}</strong>
-                        {data.page < pageCount ? <Link href={`${basePath}?page=${data.page + 1}`}>Next</Link> : <span>Next</span>}
-                    </nav>
-                ) : null}
-                <p className={styles.trashLink}><Link href={`${basePath}/trash`}>View trash</Link></p>
+                <footer className={styles.listFooter}><span>Showing {first} to {last} of {data.total} results</span><nav className={styles.pagination} aria-label={`${data.title} pages`}>{data.page > 1 ? <Link href={`${basePath}?page=${data.page - 1}`}>Previous</Link> : null}<strong>{data.page} / {pageCount}</strong>{data.page < pageCount ? <Link href={`${basePath}?page=${data.page + 1}`}>Next</Link> : null}</nav><p className={styles.trashLink}><Link href={`${basePath}/trash`}>View trash</Link></p></footer>
             </section>
         </>
     );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 
 import type {
@@ -41,6 +41,7 @@ type CreateFormProperties = Readonly<{
     companies: readonly CrmOption[];
     people: readonly CrmOption[];
     customFields: readonly CrmCustomField[];
+    onSuccess?: () => void;
 }>;
 
 export const CreateForm = ({
@@ -50,9 +51,14 @@ export const CreateForm = ({
     companies,
     people,
     customFields,
+    onSuccess,
 }: CreateFormProperties) => {
     const [state, formAction] = useActionState(action, initialCrmMutationState);
     const showCompany = resource !== "companies";
+
+    useEffect(() => {
+        if (state.status === "success") onSuccess?.();
+    }, [onSuccess, state.status]);
 
     return (
         <form action={formAction} className={styles.createForm}>
@@ -114,7 +120,7 @@ export const DeleteForm = ({
             <input type="hidden" name="intent" value="delete" />
             <input type="hidden" name="id" value={id} />
             <button className={styles.deleteButton} type="submit" aria-label={`Delete ${title}`}>
-                Delete
+                ⋮
             </button>
         </form>
     );
